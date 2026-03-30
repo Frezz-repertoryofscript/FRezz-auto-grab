@@ -1,0 +1,119 @@
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local AUTO_ENABLED = true
+local DEBOUNCE_TIME = 0.3
+local lastInteract = 0
+
+-- ================== CRÉATION DU GUI ==================
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FrezzAutoGrabGUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = playerGui
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 280, 0, 100)
+frame.Position = UDim2.new(0, 20, 0, 20)
+frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frame.BackgroundTransparency = 0.3
+frame.BorderSizePixel = 0
+frame.Active = true
+frame.Draggable = true
+frame.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 12)
+corner.Parent = frame
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(0, 170, 255)
+stroke.Thickness = 2
+stroke.Parent = frame
+
+-- Titre
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 35)
+title.BackgroundTransparency = 1
+title.Text = "❄️ Frezz Auto Grab"
+title.TextColor3 = Color3.fromRGB(0, 200, 255)
+title.TextScaled = true
+title.Font = Enum.Font.GothamBold
+title.Parent = frame
+
+-- Statut
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, 0, 0, 30)
+status.Position = UDim2.new(0, 0, 0, 35)
+status.BackgroundTransparency = 1
+status.Text = "Activé ✅ (appuie sur E automatiquement)"
+status.TextColor3 = Color3.fromRGB(0, 255, 100)
+status.TextScaled = true
+status.Font = Enum.Font.Gotham
+status.Parent = frame
+
+-- Bouton Toggle
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0.9, 0, 0, 28)
+toggleButton.Position = UDim2.new(0.05, 0, 0, 68)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+toggleButton.Text = "Désactiver Auto Grab"
+toggleButton.TextColor3 = Color3.new(1,1,1)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = frame
+
+local toggleCorner = Instance.new("UICorner")
+toggleCorner.CornerRadius = UDim.new(0, 8)
+toggleCorner.Parent = toggleButton
+
+-- ================== AUTO GRAB (Appuie sur E) ==================
+local function autoGrab(prompt)
+	if not AUTO_ENABLED then return end
+	if not prompt then return end                     -- Protection contre nil
+	if tick() - lastInteract < DEBOUNCE_TIME then return end
+	
+	-- Petit délai plus sûr
+	task.wait(0.03)
+	
+	if prompt and prompt.Enabled then
+		lastInteract = tick()
+		
+		prompt:InputHoldBegin()
+		task.wait(prompt.HoldDuration + 0.1)   -- +0.1 pour plus de stabilité
+		prompt:InputHoldEnd()
+	end
+end
+
+-- Connexion avec protection supplémentaire
+ProximityPromptService.PromptShown:Connect(function(prompt)
+	autoGrab(prompt)
+end)
+
+-- ================== TOGGLE BUTTON ==================
+toggleButton.MouseButton1Click:Connect(function()
+	AUTO_ENABLED = not AUTO_ENABLED
+	
+	if AUTO_ENABLED then
+		status.Text = "Activé ✅ (appuie sur E automatiquement)"
+		status.TextColor3 = Color3.fromRGB(0, 255, 100)
+		toggleButton.Text = "Désactiver Auto Grab"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+	else
+		status.Text = "Désactivé ❌"
+		status.TextColor3 = Color3.fromRGB(255, 80, 80)
+		toggleButton.Text = "Activer Auto Grab"
+		toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+	end
+end)
+
+-- Animation d'apparition
+frame.BackgroundTransparency = 1
+frame.Size = UDim2.new(0, 200, 0, 70)
+TweenService:Create(frame, TweenInfo.new(0.6, Enum.EasingStyle.Back), {
+	BackgroundTransparency = 0.3,
+	Size = UDim2.new(0, 280, 0, 100)
+}):Play()
