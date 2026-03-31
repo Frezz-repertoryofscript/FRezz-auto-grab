@@ -1,0 +1,288 @@
+-- =============================================
+--  FREZZ TP + FREZZ BLOCK
+--  RightShift  → FREZZ TP (Tapis Volant Brainrot)
+--  LeftShift   → FREZZ BLOCK (Bloquer joueurs)
+-- =============================================
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+
+local flySpeed = 0.8
+
+-- ================== GUI 1 : FREZZ TP (Tapis Volant) ==================
+local frezzTPGui = Instance.new("ScreenGui")
+frezzTPGui.Name = "FrezzTP_GUI"
+frezzTPGui.ResetOnSpawn = false
+frezzTPGui.Parent = player:WaitForChild("PlayerGui")
+
+local TPFrame = Instance.new("Frame")
+TPFrame.Size = UDim2.new(0, 360, 0, 480)
+TPFrame.Position = UDim2.new(0.5, -180, 0.5, -240)
+TPFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+TPFrame.Active = true
+TPFrame.Draggable = true
+TPFrame.Parent = frezzTPGui
+
+local TPTitle = Instance.new("TextLabel")
+TPTitle.Size = UDim2.new(1, 0, 0, 50)
+TPTitle.BackgroundColor3 = Color3.fromRGB(255, 85, 0)
+TPTitle.Text = "🧞 FREZZ TP"
+TPTitle.TextColor3 = Color3.new(1,1,1)
+TPTitle.TextScaled = true
+TPTitle.Font = Enum.Font.GothamBold
+TPTitle.Parent = TPFrame
+
+local TPClose = Instance.new("TextButton")
+TPClose.Size = UDim2.new(0, 40, 0, 40)
+TPClose.Position = UDim2.new(1, -45, 0, 5)
+TPClose.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+TPClose.Text = "✕"
+TPClose.TextColor3 = Color3.new(1,1,1)
+TPClose.TextScaled = true
+TPClose.Parent = TPFrame
+
+-- Slider Vitesse
+local SliderLabel = Instance.new("TextLabel")
+SliderLabel.Size = UDim2.new(1, -20, 0, 30)
+SliderLabel.Position = UDim2.new(0, 10, 0, 65)
+SliderLabel.BackgroundTransparency = 1
+SliderLabel.Text = "Vitesse du vol : 0.8s"
+SliderLabel.TextColor3 = Color3.new(1,1,1)
+SliderLabel.TextScaled = true
+SliderLabel.Font = Enum.Font.GothamSemibold
+SliderLabel.Parent = TPFrame
+
+local SliderBar = Instance.new("Frame")
+SliderBar.Size = UDim2.new(1, -40, 0, 12)
+SliderBar.Position = UDim2.new(0, 20, 0, 105)
+SliderBar.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+SliderBar.Parent = TPFrame
+
+local SliderFill = Instance.new("Frame")
+SliderFill.Size = UDim2.new(0.7, 0, 1, 0)
+SliderFill.BackgroundColor3 = Color3.fromRGB(255, 110, 0)
+SliderFill.Parent = SliderBar
+
+local SliderKnob = Instance.new("TextButton")
+SliderKnob.Size = UDim2.new(0, 20, 0, 20)
+SliderKnob.Position = UDim2.new(0.7, -10, 0.5, -10)
+SliderKnob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+SliderKnob.Text = ""
+SliderKnob.Parent = SliderBar
+
+local TPScrolling = Instance.new("ScrollingFrame")
+TPScrolling.Size = UDim2.new(1, -20, 1, -170)
+TPScrolling.Position = UDim2.new(0, 10, 0, 140)
+TPScrolling.BackgroundTransparency = 1
+TPScrolling.ScrollBarThickness = 8
+TPScrolling.Parent = TPFrame
+
+local TPListLayout = Instance.new("UIListLayout")
+TPListLayout.Padding = UDim.new(0, 10)
+TPListLayout.Parent = TPScrolling
+
+local brainrotButtons = {}
+
+-- ================== GUI 2 : FREZZ BLOCK ==================
+local frezzBlockGui = Instance.new("ScreenGui")
+frezzBlockGui.Name = "FrezzBlock_GUI"
+frezzBlockGui.ResetOnSpawn = false
+frezzBlockGui.Parent = player.PlayerGui
+
+local BlockFrame = Instance.new("Frame")
+BlockFrame.Size = UDim2.new(0, 300, 0, 420)
+BlockFrame.Position = UDim2.new(0.3, -150, 0.4, -210)
+BlockFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+BlockFrame.Active = true
+BlockFrame.Draggable = true
+BlockFrame.Parent = frezzBlockGui
+
+local BlockTitle = Instance.new("TextLabel")
+BlockTitle.Size = UDim2.new(1, 0, 0, 50)
+BlockTitle.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
+BlockTitle.Text = "🚫 FREZZ BLOCK"
+BlockTitle.TextColor3 = Color3.new(1,1,1)
+BlockTitle.TextScaled = true
+BlockTitle.Font = Enum.Font.GothamBold
+BlockTitle.Parent = BlockFrame
+
+local BlockClose = Instance.new("TextButton")
+BlockClose.Size = UDim2.new(0, 40, 0, 40)
+BlockClose.Position = UDim2.new(1, -45, 0, 5)
+BlockClose.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+BlockClose.Text = "✕"
+BlockClose.TextColor3 = Color3.new(1,1,1)
+BlockClose.TextScaled = true
+BlockClose.Parent = BlockFrame
+
+local BlockScrolling = Instance.new("ScrollingFrame")
+BlockScrolling.Size = UDim2.new(1, -20, 1, -70)
+BlockScrolling.Position = UDim2.new(0, 10, 0, 60)
+BlockScrolling.BackgroundTransparency = 1
+BlockScrolling.ScrollBarThickness = 8
+BlockScrolling.Parent = BlockFrame
+
+local BlockListLayout = Instance.new("UIListLayout")
+BlockListLayout.Padding = UDim.new(0, 8)
+BlockListLayout.Parent = BlockScrolling
+
+local playerButtons = {}
+
+-- ================== Slider Logic ==================
+local dragging = false
+
+local function updateSlider(percent)
+    percent = math.clamp(percent, 0, 1)
+    flySpeed = 0.1 + (percent * 0.9)
+    SliderFill.Size = UDim2.new(percent, 0, 1, 0)
+    SliderKnob.Position = UDim2.new(percent, -10, 0.5, -10)
+    SliderLabel.Text = string.format("Vitesse du vol : %.1fs", flySpeed)
+end
+
+SliderBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        local percent = (input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X
+        updateSlider(percent)
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local percent = (input.Position.X - SliderBar.AbsolutePosition.X) / SliderBar.AbsoluteSize.X
+        updateSlider(percent)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+-- ================== Fonctions FREZZ TP ==================
+local function createFlyingCarpet()
+    if character:FindFirstChild("FlyingCarpet") then return end
+    local carpet = Instance.new("Part")
+    carpet.Name = "FlyingCarpet"
+    carpet.Size = Vector3.new(7, 0.6, 9)
+    carpet.Color = Color3.fromRGB(255, 130, 0)
+    carpet.Material = Enum.Material.Neon
+    carpet.CanCollide = true
+    carpet.Parent = character
+
+    local weld = Instance.new("WeldConstraint")
+    weld.Part0 = root
+    weld.Part1 = carpet
+    weld.Parent = carpet
+end
+
+local function flyTo(targetPart)
+    createFlyingCarpet()
+    local targetCFrame = targetPart.CFrame * CFrame.new(0, 9, 0)
+
+    local tweenInfo = TweenInfo.new(flySpeed, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+    TweenService:Create(root, tweenInfo, {CFrame = targetCFrame}):Play()
+    
+    print("🛫 FREZZ TP → " .. targetPart.Parent.Name .. " (" .. string.format("%.1f", flySpeed) .. "s)")
+end
+
+local function refreshBrainrotList()
+    for _, btn in pairs(brainrotButtons) do btn:Destroy() end
+    brainrotButtons = {}
+
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        local n = obj.Name:lower()
+        if n:find("brainrot") or n:find("br ") or n:find("cappuccina") or n:find("tung") or n:find("sigma") or n:find("skibidi") then
+            local rootPart = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChildWhichIsA("BasePart")
+            if rootPart and rootPart ~= root then
+                local btn = Instance.new("TextButton")
+                btn.Size = UDim2.new(1, -10, 0, 55)
+                btn.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+                btn.Text = "🧠 " .. obj.Name
+                btn.TextColor3 = Color3.new(1,1,1)
+                btn.TextScaled = true
+                btn.Font = Enum.Font.GothamSemibold
+                btn.Parent = TPScrolling
+
+                btn.MouseButton1Click:Connect(function()
+                    if rootPart then flyTo(rootPart) end
+                end)
+                table.insert(brainrotButtons, btn)
+            end
+        end
+    end
+
+    TPScrolling.CanvasSize = UDim2.new(0,0,0, TPListLayout.AbsoluteContentSize.Y + 30)
+end
+
+-- ================== Fonctions FREZZ BLOCK ==================
+local function refreshPlayersList()
+    for _, btn in pairs(playerButtons) do btn:Destroy() end
+    playerButtons = {}
+
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player then
+            local btn = Instance.new("TextButton")
+            btn.Size = UDim2.new(1, -10, 0, 50)
+            btn.BackgroundColor3 = Color3.fromRGB(55, 55, 75)
+            btn.Text = "👤 " .. plr.Name
+            btn.TextColor3 = Color3.fromRGB(255, 80, 80)
+            btn.TextScaled = true
+            btn.Font = Enum.Font.GothamSemibold
+            btn.Parent = BlockScrolling
+
+            btn.MouseButton1Click:Connect(function()
+                local char = plr.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    root.CFrame = char.HumanoidRootPart.CFrame * CFrame.new(0, 0, 2.5)
+                    print("🚫 FREZZ BLOCK → " .. plr.Name)
+                end
+            end)
+
+            table.insert(playerButtons, btn)
+        end
+    end
+
+    BlockScrolling.CanvasSize = UDim2.new(0,0,0, BlockListLayout.AbsoluteContentSize.Y + 20)
+end
+
+-- ================== Contrôles ==================
+TPClose.MouseButton1Click:Connect(function() frezzTPGui.Enabled = false end)
+BlockClose.MouseButton1Click:Connect(function() frezzBlockGui.Enabled = false end)
+
+UserInputService.InputBegan:Connect(function(input, gp)
+    if gp then return end
+    
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        frezzTPGui.Enabled = not frezzTPGui.Enabled
+        if frezzTPGui.Enabled then refreshBrainrotList() end
+    end
+    
+    if input.KeyCode == Enum.KeyCode.LeftShift then
+        frezzBlockGui.Enabled = not frezzBlockGui.Enabled
+        if frezzBlockGui.Enabled then refreshPlayersList() end
+    end
+end)
+
+-- Auto refresh toutes les 6 secondes
+spawn(function()
+    while wait(6) do
+        if frezzTPGui.Enabled then refreshBrainrotList() end
+        if frezzBlockGui.Enabled then refreshPlayersList() end
+    end
+end)
+
+player.CharacterAdded:Connect(function(newChar)
+    character = newChar
+    root = newChar:WaitForChild("HumanoidRootPart")
+end)
+
+print("✅ FREZZ TP et FREZZ BLOCK chargés avec succès !")
+print("→ RightShift = FREZZ TP (Tapis Volant + Slider)")
+print("→ LeftShift  = FREZZ BLOCK (Clique sur un joueur pour le bloquer)")
