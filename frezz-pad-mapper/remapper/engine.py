@@ -10,6 +10,7 @@ import traceback
 from .constants import PHYS_BUTTONS, PHYS_AXES, STICKS
 from .macro import MacroInstance
 from .profile import normalize_profile, default_profile
+from .realtime import MODES, DEFAULT_MODE, Sleeper, boost_thread
 
 STICK_AXES = {"pad:LS": ("LX", "LY"), "pad:RS": ("RX", "RY")}
 DIGITAL_STICK_KEYS = {
@@ -18,6 +19,8 @@ DIGITAL_STICK_KEYS = {
     "arrows": ("key:up", "key:down", "key:left", "key:right"),
 }
 TRIGGER_TARGETS = {"pad:L2": "L2", "pad:R2": "R2"}
+_NO_BUTTONS = {b: False for b in PHYS_BUTTONS}
+_ZERO_AXES = {a: 0.0 for a in PHYS_AXES}
 
 
 def clamp(v, lo=-1.0, hi=1.0):
@@ -56,8 +59,8 @@ class OutputState:
     __slots__ = ("targets", "axes", "mouse")
 
     def __init__(self, targets=None, axes=None, mouse=(0.0, 0.0)):
-        self.targets = set(targets or ())
-        self.axes = dict(axes or {a: 0.0 for a in PHYS_AXES})
+        self.targets = set(targets) if targets else set()
+        self.axes = dict(axes) if axes else dict(_ZERO_AXES)
         self.mouse = mouse
 
 
@@ -82,15 +85,44 @@ class EngineCore:
 
     # ------------------------------------------------------------------ profil
     def set_profile(self, profile):
-        self.profile = normalize_profile(profile)
-        self.macros = {m["name"]: m for m in self.profile["macros"]}
+        self.profile = p = normalize_profile(profile)
+        self.macros = {m["name"]: m for m in p["macros"]}
         # combos les plus longs d'abord : ils ont la priorité sur leurs sous-ensembles
         self.triggered = sorted(
-            (m for m in self.profile["macros"] if m["enabled"] and m["trigger"]),
+            (m for m in p["macros"] if m["enabled"] and m["trigger"]),
             key=lambda m: -len(m["trigger"]),
         )
         self.chords = [tuple(m["trigger"]) for m in self.triggered]
-        self.chords += [tuple(c) for c in self.profile["hotkeys"].values() if c]
+        self.chords += [tuple(c) for c in p["hotkeys"].values() if c]
+        # --- tables précalculées pour que le tick fasse le moins de travail possible
+        multi = [frozenset(c) for c in self.chords if len(c) > 1]
+        # pour chaque combo : les combos plus longs qui le contiennent (priorité)
+        self._supers = {}
+        for c in self.chords:
+            fc = frozenset(c)
+            self._supers[tuple(c)] = [tuple(x) for x in set(multi) if len(x) > len(fc) and fc < x]
+        self._hotkeys = [(a, tuple(c)) for a, c in p["hotkeys"].items() if c]
+        self._macro_trigs = [(m, tuple(m["trigger"]), ("trig", m["name"]), m["mode"] == "long")
+                             for m in self.triggered]
+        rows = []
+        for b in PHYS_BUTTONS:
+            target = p["buttons"].get(b, "none")
+            turbo = p["turbo"].get(b)
+            turbo = turbo if turbo and turbo["enabled"] else None
+            kind, _, name = target.partition(":")
+            analog = b in ("L2", "R2") and target in TRIGGER_TARGETS and turbo is None
+            if target == "none" and turbo is None:
+                continue
+            rows.append((b, target, kind, name, turbo, analog))
+        self._rows = rows
+        self._analog = [(side, TRIGGER_TARGETS[p["buttons"][side]], p["triggers"][side])
+                        for side in ("L2", "R2")
+                        if p["buttons"].get(side) in TRIGGER_TARGETS and not
+                        (p["turbo"].get(side) or {}).get("enabled")]
+        self._thr = ((p["triggers"]["L2"]["threshold"]), (p["triggers"]["R2"]["threshold"]))
+        self._sticks = [(ax, ay, p["sticks"][side], p["sticks"][side].get("target", "none"))
+                        for side, (ax, ay) in STICKS.items()
+                        if p["sticks"][side].get("target", "none") != "none"]
         self.stop_all_macros()
         self.trig.clear()
         self.turbo_on.clear()
@@ -203,103 +235,105 @@ class EngineCore:
                 rec["axis_time"][a] = now
 
     # ------------------------------------------------------------------- tick
+    def _shadowed(self, chord, cur):
+        for c in self._supers.get(chord, ()):
+            if all(cur[b] for b in c):
+                return True
+        return False
+
     def process(self, buttons, axes, now):
-        p = self.profile
         dt = 0.0 if self.last_now is None else clamp(now - self.last_now, 0.0, 0.1)
         self.last_now = now
-        buttons = {b: bool(buttons.get(b, False)) for b in PHYS_BUTTONS}
-        axes = {a: float(axes.get(a, 0.0)) for a in PHYS_AXES}
-        for side in ("L2", "R2"):
-            if axes[side] > p["triggers"][side]["threshold"]:
-                buttons[side] = True
-        for b in PHYS_BUTTONS:
-            if buttons[b] and not self.prev[b]:
-                self.press_time[b] = now
+        cur = dict(_NO_BUTTONS)
+        for b, v in buttons.items():
+            if v:
+                cur[b] = True
+        ax = dict(_ZERO_AXES)
+        ax.update(axes)
+        if ax["L2"] > self._thr[0]:
+            cur["L2"] = True
+        if ax["R2"] > self._thr[1]:
+            cur["R2"] = True
+        prev = self.prev
+        press_time = self.press_time
+        for b, v in cur.items():
+            if v and not prev.get(b):
+                press_time[b] = now
 
         out = OutputState()
         actions = []
         blocked = set()
 
-        # Combos actuellement tenus (pour la priorité des combos longs)
-        held_chords = [c for c in self.chords if len(c) > 1 and all(buttons[b] for b in c)]
-
-        def shadowed(chord):
-            s = set(chord)
-            return any(len(c) > len(chord) and s < set(c) for c in held_chords)
-
         # Raccourcis globaux (fonctionnent même en pause)
-        for action, chord in p["hotkeys"].items():
-            if not chord:
-                continue
+        chord_prev = self.chord_prev
+        for action, chord in self._hotkeys:
+            held = all(cur[b] for b in chord) and not self._shadowed(chord, cur)
             key = ("hotkey", action)
-            held = all(buttons[b] for b in chord) and not shadowed(chord)
-            if held and not self.chord_prev.get(key):
+            if held and not chord_prev.get(key):
                 actions.append(action)
-            self.chord_prev[key] = held
+            chord_prev[key] = held
             if held:
                 blocked.update(chord)
-        if "toggle_pause" in actions:
-            self.paused = not self.paused
-            self.stop_all_macros()
-        if "stop_macros" in actions:
-            self.stop_all_macros()
+        if actions:
+            if "toggle_pause" in actions:
+                self.paused = not self.paused
+                self.stop_all_macros()
+            if "stop_macros" in actions:
+                self.stop_all_macros()
 
         if self.paused:
-            self.prev = buttons
+            self.prev = cur
             return out, actions
 
         # Macros déclenchées par bouton / combo
-        for m in self.triggered:
-            held = all(buttons[b] for b in m["trigger"]) and not shadowed(m["trigger"])
-            self._handle_trigger(m, ("trig", m["name"]), held, now)
-            if m["block_trigger"] and held:
-                blocked.update(m["trigger"])
+        trig = self.trig
+        for m, chord, key, is_long in self._macro_trigs:
+            held = all(cur[b] for b in chord) and not self._shadowed(chord, cur)
+            st = trig.get(key)
+            # rien n'a changé : on saute (sauf appui long qui dépend du temps)
+            if st is None or st["prev"] != held or (is_long and held):
+                self._handle_trigger(m, key, held, now)
+            if held and m["block_trigger"]:
+                blocked.update(chord)
 
-        # Remappage bouton par bouton
-        bmap = p["buttons"]
+        # Remappage bouton par bouton (seulement les boutons utiles)
         rec_targets = set()
-        for b in PHYS_BUTTONS:
-            target = bmap.get(b, "none")
-            pressed = buttons[b] and b not in blocked
-            turbo = p["turbo"].get(b)
-            if turbo and turbo["enabled"]:
+        for b, target, kind, name, turbo, analog in self._rows:
+            pressed = cur[b] and b not in blocked
+            if turbo is not None:
                 pressed = self._turbo(b, turbo, pressed, now)
-            kind, _, name = target.partition(":")
             if kind == "macro":
                 m = self.macros.get(name)
                 if m:
                     self._handle_trigger(m, ("btn", b, name), pressed, now)
                 continue
+            if not pressed or analog:
+                continue
             if kind == "action":
-                if pressed and not self.prev[b]:
+                if not prev.get(b):
                     actions.append(name)
                 continue
-            if target == "none" or not pressed:
-                continue
-            # Gâchette analogique -> gâchette virtuelle analogique (sauf turbo)
-            if b in ("L2", "R2") and target in TRIGGER_TARGETS and not (turbo and turbo["enabled"]):
-                continue
-            rec_targets.add(target)
+            if target != "none":
+                rec_targets.add(target)
 
         # Gâchettes analogiques
-        for side in ("L2", "R2"):
-            target = bmap.get(side)
-            turbo = p["turbo"].get(side)
-            if target in TRIGGER_TARGETS and side not in blocked and not (turbo and turbo["enabled"]):
-                v = process_trigger(axes[side], p["triggers"][side])
-                a = TRIGGER_TARGETS[target]
-                out.axes[a] = max(out.axes[a], v)
+        oax = out.axes
+        for side, a, cfg in self._analog:
+            if side not in blocked:
+                v = process_trigger(ax[side], cfg)
+                if v > oax[a]:
+                    oax[a] = v
 
         # Sticks
         mx = my = 0.0
-        for side, (ax, ay) in STICKS.items():
-            cfg = p["sticks"][side]
-            x, y = process_stick(axes[ax], axes[ay], cfg)
-            tgt = cfg.get("target", "none")
+        for sx, sy, cfg, tgt in self._sticks:
+            x, y = process_stick(ax[sx], ax[sy], cfg)
+            if x == 0.0 and y == 0.0:
+                continue
             if tgt in STICK_AXES:
                 ox, oy = STICK_AXES[tgt]
-                out.axes[ox] = clamp(out.axes[ox] + x)
-                out.axes[oy] = clamp(out.axes[oy] + y)
+                oax[ox] = clamp(oax[ox] + x)
+                oax[oy] = clamp(oax[oy] + y)
             elif tgt == "mouse":
                 speed = float(cfg.get("mouse_speed", 1400.0))
                 mx += x * speed * dt
@@ -318,26 +352,28 @@ class EngineCore:
         out.mouse = (mx, my)
 
         if self.recording is not None:
-            self._record(rec_targets, out.axes, now)
-        out.targets |= rec_targets
+            self._record(rec_targets, oax, now)
+        out.targets = rec_targets
 
         # Macros en cours : leurs boutons/axes s'ajoutent (et priment pour les axes)
-        for name in list(self.running):
-            inst = self.running[name]
-            if not inst.update(now):
-                del self.running[name]
-                continue
-            out.targets |= inst.held
-            out.axes.update(inst.axes)
-        alive = []
-        for inst in self.manual:
-            if inst.update(now):
+        if self.running:
+            for name in list(self.running):
+                inst = self.running[name]
+                if not inst.update(now):
+                    del self.running[name]
+                    continue
                 out.targets |= inst.held
-                out.axes.update(inst.axes)
-                alive.append(inst)
-        self.manual = alive
+                oax.update(inst.axes)
+        if self.manual:
+            alive = []
+            for inst in self.manual:
+                if inst.update(now):
+                    out.targets |= inst.held
+                    oax.update(inst.axes)
+                    alive.append(inst)
+            self.manual = alive
 
-        self.prev = buttons
+        self.prev = cur
         return out, actions
 
     def _turbo(self, b, cfg, pressed, now):
@@ -387,10 +423,14 @@ def compact_steps(steps):
 class Engine:
     """Boucle temps réel dans un thread : entrée -> EngineCore -> sortie."""
 
-    def __init__(self, input_factory, output_factory, tick_hz=1000, log=print):
+    SNAPSHOT_EVERY = 0.008   # l'interface n'a pas besoin de plus de ~120 images/s
+
+    def __init__(self, input_factory, output_factory, mode=DEFAULT_MODE, log=print, tick_hz=None):
         self.input_factory = input_factory
         self.output_factory = output_factory
-        self.tick = 1.0 / max(int(tick_hz), 60)
+        self.mode = mode if mode in MODES else DEFAULT_MODE
+        hz = tick_hz or MODES[self.mode]["hz"]
+        self.tick = 1.0 / max(int(hz), 60)
         self.log = log
         self.core = EngineCore()
         self.lock = threading.Lock()
@@ -401,7 +441,8 @@ class Engine:
         self.input = None
         self.output = None
         self._snap = {}
-        self.loop_hz = 0.0
+        self.snap_queue = None     # utilisé quand le moteur tourne dans un processus séparé
+        self.stats = {"hz": 0.0, "proc_us": 0.0, "late_ms": 0.0, "max_us": 0.0}
 
     # ----------------------------------------------- API (thread interface)
     def start(self):
@@ -436,49 +477,53 @@ class Engine:
             self.events.put(("error", str(e)))
             return
         self.log(f"Sortie : {self.output.describe()}")
-        hi_res = _enable_hires_timer()
-        next_t = time.perf_counter()
-        count, count_t = 0, next_t
+        self.log(f"Mode : {MODES[self.mode]['label']}")
+        undo_thread = boost_thread(self.log)
+        sleeper = Sleeper(MODES[self.mode]["spin_us"])
+        perf = time.perf_counter
+        tick = self.tick
+        core, inp, outp, cmds = self.core, self.input, self.output, self.commands
+        next_t = perf()
+        snap_t = 0.0
+        count, count_t, proc_sum, proc_max, late_max = 0, next_t, 0.0, 0.0, 0.0
+        state = None
+        out = OutputState()
         try:
             while self.alive:
-                now = time.perf_counter()
-                self._commands(now)
-                state = self.input.poll()
-                for ev in state.get("events", []):
-                    self.log(ev)
-                    self.events.put(("device", ev))
-                out, actions = self.core.process(state["buttons"], state["axes"], now)
+                t0 = perf()
+                late = t0 - next_t
+                if late > late_max:
+                    late_max = late
+                if not cmds.empty():
+                    self._commands(t0)
+                state = inp.poll()
+                if state["events"]:
+                    for ev in state["events"]:
+                        self.log(ev)
+                        self.events.put(("device", ev))
+                out, actions = core.process(state["buttons"], state["axes"], t0)
                 if not state["connected"]:
                     out = OutputState()
-                self.output.apply(out, self.core.profile["virtual_pad"])
+                outp.apply(out, core.profile["virtual_pad"])
                 for a in actions:
                     self.events.put(("action", a))
+                t1 = perf()
+                d = t1 - t0
+                proc_sum += d
+                if d > proc_max:
+                    proc_max = d
                 count += 1
-                if now - count_t >= 1.0:
-                    self.loop_hz = count / (now - count_t)
-                    count, count_t = 0, now
-                with self.lock:
-                    self._snap = {
-                        "connected": state["connected"],
-                        "device": state.get("name", ""),
-                        "battery": state.get("battery", ""),
-                        "buttons": dict(self.core.prev),
-                        "axes": dict(state["axes"]),
-                        "raw": state.get("raw"),
-                        "out_targets": set(out.targets),
-                        "out_axes": dict(out.axes),
-                        "running": self.core.running_info(),
-                        "paused": self.core.paused,
-                        "recording": self.core.recording is not None,
-                        "profile": self.core.profile["name"],
-                        "hz": self.loop_hz,
-                    }
-                next_t += self.tick
-                delay = next_t - time.perf_counter()
-                if delay > 0:
-                    time.sleep(delay)
-                else:
-                    next_t = time.perf_counter()
+                if t1 - count_t >= 1.0:
+                    self.stats = {"hz": count / (t1 - count_t), "proc_us": proc_sum / count * 1e6,
+                                  "max_us": proc_max * 1e6, "late_ms": max(late_max, 0.0) * 1e3}
+                    count, count_t, proc_sum, proc_max, late_max = 0, t1, 0.0, 0.0, 0.0
+                if t1 - snap_t >= self.SNAPSHOT_EVERY:
+                    snap_t = t1
+                    self._publish(state, out)
+                next_t += tick
+                if next_t < t1 - 0.05:   # gros retard (mise en veille…) : on se recale
+                    next_t = t1
+                sleeper.until(next_t)
         except Exception:  # noqa: BLE001
             err = traceback.format_exc()
             self.log(err)
@@ -493,8 +538,35 @@ class Engine:
                 self.input.close()
             except Exception:  # noqa: BLE001
                 pass
-            if hi_res:
-                hi_res()
+            sleeper.close()
+            undo_thread()
+
+    def _publish(self, state, out):
+        snap = {
+            "connected": state["connected"],
+            "device": state.get("name", ""),
+            "battery": state.get("battery", ""),
+            "buttons": self.core.prev,          # remplacé (pas modifié) à chaque tick
+            "axes": state["axes"],
+            "raw": state.get("raw"),
+            "out_targets": out.targets,
+            "out_axes": out.axes,
+            "running": self.core.running_info(),
+            "paused": self.core.paused,
+            "recording": self.core.recording is not None,
+            "profile": self.core.profile["name"],
+            "hz": self.stats["hz"],
+            "stats": self.stats,
+            "mode": self.mode,
+        }
+        if self.snap_queue is not None:
+            try:
+                self.snap_queue.put_nowait(snap)
+            except Exception:  # noqa: BLE001  (file pleine : l'interface lira la suivante)
+                pass
+            return
+        with self.lock:
+            self._snap = snap
 
     def _commands(self, now):
         while True:
@@ -502,7 +574,9 @@ class Engine:
                 cmd, args = self.commands.get_nowait()
             except queue.Empty:
                 return
-            if cmd == "profile":
+            if cmd == "quit":
+                self.alive = False
+            elif cmd == "profile":
                 self.core.set_profile(args[0])
             elif cmd == "run_macro":
                 self.core.run_manual(args[0], now)
@@ -521,16 +595,7 @@ class Engine:
                 self.input.set_map(args[0])
             elif cmd == "rumble":
                 self.input.rumble(*args)
+            elif cmd == "raw":
+                self.input.want_raw = bool(args[0])
             elif cmd == "list_devices":
                 self.events.put(("devices", self.input.list_devices()))
-
-
-def _enable_hires_timer():
-    """Sous Windows, passe le timer système à 1 ms (sinon sleep ≈ 15 ms)."""
-    try:
-        import ctypes
-        winmm = ctypes.WinDLL("winmm")
-        winmm.timeBeginPeriod(1)
-        return lambda: winmm.timeEndPeriod(1)
-    except Exception:  # noqa: BLE001
-        return None

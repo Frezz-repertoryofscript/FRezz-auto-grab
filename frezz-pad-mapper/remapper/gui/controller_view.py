@@ -64,6 +64,12 @@ class ControllerView(tk.Canvas):
     def update_state(self, snap):
         buttons = snap.get("buttons", {})
         axes = snap.get("axes", {})
+        key = (tuple(sorted(b for b, v in buttons.items() if v)),
+               tuple(round(axes.get(a, 0.0), 2) for a in ("LX", "LY", "RX", "RY", "L2", "R2")),
+               tuple(sorted(snap.get("out_targets", ()))))
+        if key == getattr(self, "_last", None):
+            return   # rien n'a bougé : pas de redessin
+        self._last = key
         for name, item in self.items.items():
             self.itemconfigure(item, fill=ACCENT if buttons.get(name) else FIELD)
         for side in ("L2", "R2"):

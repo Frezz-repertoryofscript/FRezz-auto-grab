@@ -19,6 +19,7 @@ Logiciel de **remappage** et de **macros** pour manette **PS5 (DualSense)** sur 
 | 🔥 **Turbo** | Par bouton, 1 à 30 appuis/s, en maintien ou en toggle |
 | 📁 **Profils** | Sauvegarde auto, import / export JSON, changement de profil à la manette (PS + R1 / L1) |
 | 🧩 **Modèles** | Tir rapide, spam saut, quart de cercle, dragon punch, combo chaîne, drop shot, anti-AFK… |
+| 🚀 **Ultra rapide** | Moteur dans un processus séparé en priorité haute, jusqu'à 8000 Hz, ~10 µs de traitement par tick (voir plus bas) |
 | 🔧 **Calibration** | Assistant si ta manette n'a pas la disposition standard + affichage des valeurs brutes |
 
 Raccourcis par défaut (modifiables dans l'onglet *Raccourcis*) :
@@ -44,7 +45,7 @@ Pour faire un `.exe` autonome : lance **`build_exe.bat`** (PyInstaller) → `dis
 
 ```bat
 python main.py                       :: interface graphique
-python main.py --headless --profile "Exemples"   :: sans interface
+python main.py --headless --profile "Exemples" --mode extreme   :: sans interface
 python main.py --demo                :: interface sans matériel
 ```
 
@@ -60,6 +61,40 @@ DualSense ──(pygame/SDL2)──► moteur 1000 Hz ──► manette virtuell
   (icônes PlayStation en jeu) — onglet *Sticks & gâchettes*.
 - Les touches clavier sont envoyées en **scancodes**, donc elles fonctionnent dans les jeux DirectInput / Raw Input.
   Les lettres suivent la disposition de ton clavier (AZERTY ou QWERTY).
+
+## ⚡ Performance / latence
+
+Le moteur est fait pour ajouter le moins de retard possible :
+
+- **Processus séparé** : le moteur tourne dans son propre processus en **priorité haute**, avec son thread en priorité
+  *temps critique* + MMCSS « Games ». L'interface ne peut jamais le ralentir (pas de GIL partagé).
+- **Timer haute résolution** Windows (`CREATE_WAITABLE_TIMER_HIGH_RESOLUTION`) + timer système à 1 ms
+  + attente active pour la fin de chaque cycle selon le mode.
+- **Anti-bridage Windows 11** : EcoQoS désactivé, pour que le moteur reste rapide même quand l'appli est réduite
+  et que le jeu est au premier plan.
+- **Tick minimal** : tables précalculées à chaque changement de profil, seuls les boutons utiles sont lus et traités,
+  la file d'événements SDL est désactivée, la manette virtuelle n'est mise à jour que si quelque chose change.
+- Pas de pauses du ramasse-miettes pendant le jeu (`gc.freeze`).
+- L'interface se met en veille quand la fenêtre est réduite.
+
+Modes (onglet *Paramètres → Mode de performance*) :
+
+| Mode | Fréquence | Coût CPU |
+|---|---|---|
+| Éco | 500 Hz | minimal |
+| Rapide | 1000 Hz | faible |
+| **Ultra** (défaut) | 2000 Hz | faible + attente active de 0,15 ms par cycle |
+| Extrême | 8000 Hz | 1 cœur à 100 % |
+
+Les statistiques en direct (fréquence réelle, temps de traitement, pire retard) s'affichent dans *Paramètres*.
+
+Pour gagner encore :
+
+- Joue en **USB** plutôt qu'en Bluetooth.
+- La DualSense envoie ses données environ toutes les 4 ms en USB (250 Hz). Un outil d'overclock USB comme
+  **hidusbf** permet de passer à 1000 Hz : c'est souvent le plus gros gain possible.
+- Mets la manette virtuelle en **Xbox 360** (XInput) : c'est le chemin le plus direct pour la plupart des jeux.
+- Ferme DS4Windows / DSX / Steam Input pour la manette : sinon deux logiciels lisent la même manette.
 
 ## Créer une macro / un combo
 
@@ -96,6 +131,8 @@ frezz-pad-mapper/
 ├── config/                 réglages + calibration (créé au lancement)
 ├── remapper/
 │   ├── engine.py           moteur temps réel (remap, sticks, turbo, combos, macros, enregistrement)
+│   ├── engine_process.py   moteur dans un processus séparé (isolé de l'interface)
+│   ├── realtime.py         timer haute résolution, priorités, anti-bridage Windows
 │   ├── macro.py            exécution des macros (machine à états, timing précis)
 │   ├── input_backend.py    lecture DualSense (pygame / SDL2)
 │   ├── output_backend.py   ViGEmBus + SendInput

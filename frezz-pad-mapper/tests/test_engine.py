@@ -268,3 +268,25 @@ def test_threaded_engine_end_to_end():
         kinds.append(eng.events.get())
     recorded = [d for k, d in kinds if k == "recorded"][0]
     assert any(s["type"] == "tap" and s["targets"] == ["key:space"] for s in recorded)
+
+
+def test_engine_process_demo():
+    import time
+    from remapper.engine_process import EngineProcess
+    ep = EngineProcess({"demo": True, "controller_map": {}, "device_index": 0, "virtual_pad": False,
+                        "keyboard_mouse": False, "mode": "rapide", "profile": default_profile()})
+    ep.start()
+    try:
+        snap = {}
+        deadline = time.time() + 15
+        while time.time() < deadline and not snap.get("stats", {}).get("hz"):
+            time.sleep(0.1)
+            snap = ep.snapshot()
+        assert ep.alive()
+        assert snap["stats"]["hz"] > 500
+        ep.send("pause", True)
+        time.sleep(0.2)
+        assert ep.snapshot()["paused"]
+    finally:
+        ep.stop()
+    assert not ep.alive()

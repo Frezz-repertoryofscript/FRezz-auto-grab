@@ -2,7 +2,7 @@
 
     python main.py              interface graphique
     python main.py --demo       interface sans matériel (aucune entrée / sortie)
-    python main.py --headless --profile "Mon profil"   sans interface
+    python main.py --headless --profile "Mon profil" --mode extreme   sans interface
 """
 
 import argparse
@@ -17,8 +17,9 @@ def base_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
-def headless(profile_name):
+def headless(profile_name, mode):
     from remapper.engine import Engine
+    from remapper.realtime import boost_process
     from remapper.input_backend import PygameInput
     from remapper.output_backend import OutputManager
     from remapper.profile import ProfileStore, load_json
@@ -31,9 +32,10 @@ def headless(profile_name):
         return 1
     name = profile_name if profile_name in names else names[0]
     cmap = load_json(os.path.join(root, "config", "controller_map.json"), {})
-    engine = Engine(lambda: PygameInput(cmap), lambda: OutputManager(), tick_hz=1000)
+    engine = Engine(lambda: PygameInput(cmap), lambda: OutputManager(), mode=mode)
     engine.set_profile(store.load(name))
     engine.start()
+    undo = boost_process()
     print(f"Profil « {name} » actif. Ctrl+C pour quitter.")
     try:
         while engine.thread.is_alive():
@@ -50,6 +52,7 @@ def headless(profile_name):
     except KeyboardInterrupt:
         pass
     engine.stop()
+    undo()
     return 0
 
 
@@ -58,13 +61,17 @@ def main():
     ap.add_argument("--demo", action="store_true", help="interface sans manette ni sortie")
     ap.add_argument("--headless", action="store_true", help="sans interface graphique")
     ap.add_argument("--profile", default="", help="profil à charger en mode headless")
+    ap.add_argument("--mode", default="ultra", choices=["eco", "rapide", "ultra", "extreme"],
+                    help="mode de performance en mode headless")
     args = ap.parse_args()
     if args.headless:
-        return headless(args.profile)
+        return headless(args.profile, args.mode)
     from remapper.gui.app import App
     App(base_dir(), demo=args.demo).mainloop()
     return 0
 
 
 if __name__ == "__main__":
+    import multiprocessing
+    multiprocessing.freeze_support()   # requis pour l'exécutable PyInstaller
     sys.exit(main())

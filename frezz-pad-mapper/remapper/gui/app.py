@@ -11,9 +11,8 @@ from tkinter import ttk, filedialog, messagebox, simpledialog
 from .. import __version__
 from ..constants import (PHYS_BUTTONS, LABELS, STICK_TARGETS, ACTIONS, ACTION_LABELS,
                          all_targets, target_label)
-from ..engine import Engine
-from ..input_backend import PygameInput, NullInput
-from ..output_backend import OutputManager, NullOutput
+from ..engine_process import EngineProcess
+from ..realtime import MODES, DEFAULT_MODE
 from ..profile import ProfileStore, default_profile, normalize_profile, load_json, save_json
 from .controller_view import ControllerView
 from .dialogs import CaptureDialog, CalibrationDialog
@@ -29,7 +28,7 @@ STICK_LABELS = {
 DEFAULT_CONFIG = {
     "last_profile": "Défaut",
     "device_index": 0,
-    "tick_hz": 1000,
+    "perf_mode": DEFAULT_MODE,
     "virtual_pad": True,
     "keyboard_mouse": True,
 }
@@ -59,32 +58,21 @@ class App(tk.Tk):
         self._build()
         self.engine.set_profile(self.profile)
         self.engine.start()
+        self.engine_dead_shown = False
         self.after(33, self._tick)
 
     # ---------------------------------------------------------------- moteur
     def _make_engine(self):
-        cmap = load_json(self.map_path, {})
-        dev = int(self.cfg.get("device_index", 0))
-        demo = self.demo
-        log = self.log
-        enable_pad = bool(self.cfg.get("virtual_pad", True))
-        enable_km = bool(self.cfg.get("keyboard_mouse", True))
-
-        def make_input():
-            if demo:
-                return NullInput()
-            try:
-                return PygameInput(cmap, dev)
-            except ImportError:
-                log("pygame n'est pas installé : pip install pygame")
-                return NullInput()
-
-        def make_output():
-            if demo:
-                return NullOutput()
-            return OutputManager(enable_pad, enable_km, log=log)
-
-        return Engine(make_input, make_output, tick_hz=self.cfg.get("tick_hz", 1000), log=log)
+        mode = self.cfg.get("perf_mode", DEFAULT_MODE)
+        return EngineProcess({
+            "demo": self.demo,
+            "controller_map": load_json(self.map_path, {}),
+            "device_index": int(self.cfg.get("device_index", 0)),
+            "virtual_pad": bool(self.cfg.get("virtual_pad", True)),
+            "keyboard_mouse": bool(self.cfg.get("keyboard_mouse", True)),
+            "mode": mode if mode in MODES else DEFAULT_MODE,
+            "profile": self.profile,
+        })
 
     def restart_engine(self):
         self.engine.stop()
@@ -336,7 +324,13 @@ class App(tk.Tk):
             self.engine.send("controller_map", result)
             self.log("Calibration enregistrée")
             messagebox.showinfo("Calibration", "Calibration enregistrée ✔")
-        CalibrationDialog(self, self.engine, done)
+        self._with_raw(CalibrationDialog(self, self.engine, done))
+
+    def _with_raw(self, win):
+        """Active la lecture brute de la manette tant que la fenêtre est ouverte."""
+        self.engine.send("raw", True)
+        win.bind("<Destroy>", lambda e: e.widget is win and self.engine.send("raw", False), add="+")
+        return win
 
     # ---- Remapping
     def _build_remap_tab(self):
@@ -545,15 +539,19 @@ class App(tk.Tk):
         ef.pack(fill="x", padx=12, pady=6)
         self.vp_var = tk.BooleanVar(value=self.cfg["virtual_pad"])
         self.km_var = tk.BooleanVar(value=self.cfg["keyboard_mouse"])
-        self.hz_var = tk.StringVar(value=str(self.cfg["tick_hz"]))
+        mode = self.cfg.get("perf_mode") if self.cfg.get("perf_mode") in MODES else DEFAULT_MODE
+        self.mode_var = tk.StringVar(value=MODES[mode]["label"])
         ttk.Checkbutton(ef, text="Manette virtuelle (ViGEmBus)", variable=self.vp_var,
                         command=self._apply_engine_settings).grid(row=0, column=0, sticky="w", padx=8, pady=4)
         ttk.Checkbutton(ef, text="Sortie clavier / souris", variable=self.km_var,
                         command=self._apply_engine_settings).grid(row=0, column=1, sticky="w", padx=8)
-        ttk.Label(ef, text="Fréquence de la boucle (Hz)").grid(row=1, column=0, sticky="w", padx=8, pady=4)
-        cb = ttk.Combobox(ef, values=["250", "500", "1000"], textvariable=self.hz_var, state="readonly", width=8)
+        ttk.Label(ef, text="Mode de performance").grid(row=1, column=0, sticky="w", padx=8, pady=4)
+        cb = ttk.Combobox(ef, values=[m["label"] for m in MODES.values()], textvariable=self.mode_var,
+                          state="readonly", width=40)
         cb.grid(row=1, column=1, sticky="w", padx=8)
         cb.bind("<<ComboboxSelected>>", lambda e: self._apply_engine_settings())
+        self.perf_lbl = ttk.Label(ef, text="", style="Muted.TLabel", font=("Consolas", 10))
+        self.perf_lbl.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=(2, 8))
 
         cf = ttk.LabelFrame(f, text="Manette physique")
         cf.pack(fill="x", padx=12, pady=6)
@@ -580,7 +578,9 @@ class App(tk.Tk):
     def _apply_engine_settings(self):
         self.cfg["virtual_pad"] = self.vp_var.get()
         self.cfg["keyboard_mouse"] = self.km_var.get()
-        self.cfg["tick_hz"] = int(self.hz_var.get())
+        for k, m in MODES.items():
+            if m["label"] == self.mode_var.get():
+                self.cfg["perf_mode"] = k
         save_json(self.cfg_path, self.cfg)
         self.restart_engine()
 
@@ -601,6 +601,7 @@ class App(tk.Tk):
     def _raw_window(self):
         win = tk.Toplevel(self)
         win.title("Valeurs brutes SDL")
+        self._with_raw(win)
         win.configure(bg=BG)
         lbl = ttk.Label(win, font=("Consolas", 10), justify="left")
         lbl.pack(padx=14, pady=14)
@@ -630,29 +631,23 @@ class App(tk.Tk):
         self.engine.send("pause", not snap.get("paused", False))
 
     def _tick(self):
-        snap = self.engine.snapshot()
+        hidden = self.state() == "iconic"
+        snap = self.engine.snapshot() if not hidden else None
         if snap:
-            self.view.update_state(snap)
-            if snap["connected"]:
-                self.conn_lbl.configure(text=f"✔ {snap['device']}", foreground=OK)
-            else:
-                self.conn_lbl.configure(text="✖ Aucune manette détectée — branche ta DualSense", foreground=BAD)
-            batt = snap.get("battery")
-            self.batt_lbl.configure(text=f"Batterie : {batt}" if batt and batt != "unknown" else "")
+            st = snap.get("stats", {})
+            on_pad_tab = self.nb.select() == str(self.tab_pad)
+            if on_pad_tab:
+                self._update_pad_tab(snap)
             state = "⏸ EN PAUSE" if snap["paused"] else "▶ actif"
             rec = "  ● REC" if snap["recording"] else ""
-            self.status_lbl.configure(text=f"{state}{rec}   {snap['hz']:.0f} Hz",
-                                      foreground=WARN if snap["paused"] else MUTED)
+            self.status_lbl.configure(
+                text=f"{state}{rec}   {st.get('hz', 0):.0f} Hz · {st.get('proc_us', 0):.0f} µs",
+                foreground=WARN if snap["paused"] else MUTED)
             self.pause_btn.configure(text="▶ Reprendre" if snap["paused"] else "⏸ Pause")
-            running = snap["running"]
-            items = [f"▶ {n}  {int(p * 100)}%" for n, p in running] or ["—"]
-            if list(self.running_lb.get(0, "end")) != items:
-                self.running_lb.delete(0, "end")
-                for it in items:
-                    self.running_lb.insert("end", it)
-            ia, oa = snap["axes"], snap["out_axes"]
-            self.axes_lbl.configure(text="\n".join(
-                f"{a:>3}  {ia.get(a, 0):+.2f}  →  {oa.get(a, 0):+.2f}" for a in ("LX", "LY", "RX", "RY", "L2", "R2")))
+            if self.nb.select() == str(self.tab_settings):
+                self.perf_lbl.configure(text=(
+                    f"Boucle : {st.get('hz', 0):.0f} Hz   traitement moyen : {st.get('proc_us', 0):.1f} µs   "
+                    f"pire : {st.get('max_us', 0):.0f} µs   retard max du réveil : {st.get('late_ms', 0):.2f} ms"))
         while True:
             try:
                 kind, data = self.engine.events.get_nowait()
@@ -671,6 +666,8 @@ class App(tk.Tk):
                 self.engine.send("list_devices")
             elif kind == "devices":
                 self.dev_cb.configure(values=[f"{i}: {n}" for i, n in data])
+            elif kind == "log":
+                self.log(data)
             elif kind == "error":
                 messagebox.showerror("Erreur du moteur", data[-1500:])
         while True:
@@ -685,7 +682,33 @@ class App(tk.Tk):
         if not getattr(self, "_listed", False):
             self._listed = True
             self.after(800, lambda: self.engine.send("list_devices"))
-        self.after(33, self._tick)
+        if not self.engine.alive() and not self.engine_dead_shown:
+            self.engine_dead_shown = True
+            self.status_lbl.configure(text="✖ moteur arrêté", foreground=BAD)
+            if messagebox.askyesno("Moteur", "Le moteur s'est arrêté (voir Journal). Le relancer ?"):
+                self.restart_engine()
+                self.engine_dead_shown = False
+        # fenêtre réduite : l'interface se met en veille pour laisser tout le CPU au moteur
+        self.after(500 if hidden else 33, self._tick)
+
+    def _update_pad_tab(self, snap):
+        self.view.update_state(snap)
+        if snap["connected"]:
+            self.conn_lbl.configure(text=f"✔ {snap['device']}", foreground=OK)
+        else:
+            self.conn_lbl.configure(text="✖ Aucune manette détectée — branche ta DualSense", foreground=BAD)
+        batt = snap.get("battery")
+        self.batt_lbl.configure(text=f"Batterie : {batt}" if batt and batt != "unknown" else "")
+        items = [f"▶ {n}  {int(p * 100)}%" for n, p in snap["running"]] or ["—"]
+        if list(self.running_lb.get(0, "end")) != items:
+            self.running_lb.delete(0, "end")
+            for it in items:
+                self.running_lb.insert("end", it)
+        ia, oa = snap["axes"], snap["out_axes"]
+        txt = "\n".join(f"{a:>3}  {ia.get(a, 0):+.2f}  →  {oa.get(a, 0):+.2f}"
+                        for a in ("LX", "LY", "RX", "RY", "L2", "R2"))
+        if self.axes_lbl.cget("text") != txt:
+            self.axes_lbl.configure(text=txt)
 
     def on_close(self):
         if self._save_job:
