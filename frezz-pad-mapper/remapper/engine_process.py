@@ -23,7 +23,7 @@ def _child(cfg, cmd_q, evt_q, snap_q):
         if cfg["demo"]:
             return NullInput()
         try:
-            return PygameInput(cfg["controller_map"], cfg["device_index"])
+            return PygameInput(cfg["controller_map"], cfg.get("device_name", ""))
         except ImportError:
             log("pygame n'est pas installé : pip install pygame")
             return NullInput()

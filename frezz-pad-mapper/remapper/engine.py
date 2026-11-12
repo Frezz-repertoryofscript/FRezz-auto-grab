@@ -82,6 +82,7 @@ class EngineCore:
         self.manual = []        # macros lancées depuis l'interface
         self.recording = None
         self.last_now = None
+        self.started = []       # noms des macros lancées (pour le journal)
         self.set_profile(profile or default_profile())
 
     # ------------------------------------------------------------------ profil
@@ -142,6 +143,7 @@ class EngineCore:
 
     # ----------------------------------------------------------------- macros
     def start_macro(self, macro, now, loop=False):
+        self.started.append(macro["name"])
         inst = MacroInstance(macro, now, loop=loop, rng=self.rng)
         inst.update(now)
         self.running[macro["name"]] = inst
@@ -557,6 +559,10 @@ class Engine:
                 outp.apply(out, core.profile["virtual_pad"])
                 for a in actions:
                     self.events.put(("action", a))
+                if core.started:
+                    for name in core.started:
+                        self.log(f"Macro « {name} » lancée")
+                    core.started.clear()
                 t1 = perf()
                 d = t1 - t0
                 proc_sum += d

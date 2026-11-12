@@ -21,6 +21,20 @@ DEFAULT_MAP = {
 }
 
 
+SONY_WORDS = ("dualsense", "ps5", "playstation", "sony", "wireless controller")
+VIRTUAL_WORDS = ("xbox 360", "x360", "virtual", "vigem", "xinput")
+
+
+def is_sony(name):
+    n = name.lower()
+    return any(w in n for w in SONY_WORDS)
+
+
+def is_virtual(name):
+    n = name.lower()
+    return any(w in n for w in VIRTUAL_WORDS) and not is_sony(n)
+
+
 def _empty_state():
     return {
         "connected": False,
@@ -33,7 +47,7 @@ def _empty_state():
 
 
 class PygameInput:
-    def __init__(self, controller_map=None, device_index=0):
+    def __init__(self, controller_map=None, device_name=""):
         os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
         # Indispensable : continuer à lire la manette quand le jeu a le focus
         os.environ["SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS"] = "1"
@@ -49,7 +63,9 @@ class PygameInput:
         self.want_raw = False
         self.joy = None
         self.set_map(controller_map or {})
-        self.wanted = device_index
+        self.wanted_name = device_name if isinstance(device_name, str) else ""
+        self.current = None
+        self.pending = []
         self.joy = None
         self.batt_tick = 0
         self.battery = ""
@@ -90,28 +106,51 @@ class PygameInput:
         js = self.pg.joystick
         return [(i, js.Joystick(i).get_name()) for i in range(js.get_count())]
 
-    def select(self, index):
-        self.wanted = int(index)
+    def select(self, name):
+        """name = nom exact de la manette à utiliser, "" = choix automatique."""
+        self.wanted_name = str(name or "")
         self._open()
+
+    def _choose(self, names):
+        """Choisit la vraie manette : jamais la manette virtuelle créée par l'appli."""
+        if self.wanted_name and self.wanted_name in names:
+            return names.index(self.wanted_name)
+        for i, n in enumerate(names):          # 1) une manette PlayStation
+            if is_sony(n):
+                return i
+        for i, n in enumerate(names):          # 2) n'importe quoi sauf une manette virtuelle
+            if not is_virtual(n):
+                return i
+        return 0
 
     def _open(self):
         js = self.pg.joystick
-        self.joy = None
-        self.batt_tick = 0
         n = js.get_count()
+        names = [js.Joystick(i).get_name() for i in range(n)]
         if n == 0:
+            if self.joy is not None:
+                self.pending.append("Aucune manette détectée")
+            self.joy = None
+            self.current = None
             self._compile()
             return
-        idx = self.wanted if 0 <= self.wanted < n else 0
-        # Préférer une manette Sony si l'index demandé n'est pas valide
-        if idx != self.wanted:
-            for i in range(n):
-                name = js.Joystick(i).get_name().lower()
-                if "dualsense" in name or "ps5" in name or "wireless controller" in name:
-                    idx = i
-                    break
-        self.joy = js.Joystick(idx)
-        self.joy.init()
+        idx = self._choose(names)
+        joy = js.Joystick(idx)
+        joy.init()
+        try:
+            ident = joy.get_instance_id()
+        except Exception:  # noqa: BLE001
+            ident = idx
+        if ident != self.current:
+            self.pending.append("Manettes détectées : " + " | ".join(f"#{i} {x}" for i, x in enumerate(names)))
+            self.pending.append(f"Manette utilisée : #{idx} {names[idx]}")
+            if is_virtual(names[idx]):
+                self.pending.append("⚠ Aucune DualSense trouvée, seulement une manette virtuelle. "
+                                    "Si tu utilises HidHide, ajoute FRezzPadMapper.exe (ou python.exe) "
+                                    "à ses applications autorisées, puis rebranche la manette.")
+        self.current = ident
+        self.joy = joy
+        self.batt_tick = 0
         self._compile()
 
     def rumble(self, low=0.6, high=0.6, ms=300):
@@ -125,16 +164,12 @@ class PygameInput:
         pg = self.pg
         events = []
         for ev in pg.event.get():   # met aussi à jour l'état de la manette (SDL_PumpEvents)
-            if ev.type == pg.JOYDEVICEADDED:
-                events.append("Manette branchée")
-                if self.joy is None:
-                    self._open()
-            elif ev.type == pg.JOYDEVICEREMOVED:
-                events.append("Manette débranchée")
-                if pg.joystick.get_count():
-                    self._open()
-                else:
-                    self.joy = None
+            if ev.type in (pg.JOYDEVICEADDED, pg.JOYDEVICEREMOVED):
+                # une manette arrive / part (dont la manette virtuelle) : on refait le choix
+                self._open()
+        if self.pending:
+            events.extend(self.pending)
+            self.pending = []
         j = self.joy
         if j is None:
             st = _empty_state()

@@ -27,7 +27,7 @@ STICK_LABELS = {
 
 DEFAULT_CONFIG = {
     "last_profile": "Défaut",
-    "device_index": 0,
+    "device_name": "",      # "" = choix automatique (DualSense en priorité)
     "perf_mode": DEFAULT_MODE,
     "virtual_pad": True,
     "keyboard_mouse": True,
@@ -67,7 +67,7 @@ class App(tk.Tk):
         return EngineProcess({
             "demo": self.demo,
             "controller_map": load_json(self.map_path, {}),
-            "device_index": int(self.cfg.get("device_index", 0)),
+            "device_name": self.cfg.get("device_name", ""),
             "virtual_pad": bool(self.cfg.get("virtual_pad", True)),
             "keyboard_mouse": bool(self.cfg.get("keyboard_mouse", True)),
             "mode": mode if mode in MODES else DEFAULT_MODE,
@@ -312,11 +312,12 @@ class App(tk.Tk):
 
     def _select_device(self):
         txt = self.dev_var.get()
-        if txt:
-            idx = int(txt.split(":")[0])
-            self.cfg["device_index"] = idx
-            save_json(self.cfg_path, self.cfg)
-            self.engine.send("select_device", idx)
+        if not txt:
+            return
+        name = "" if txt.startswith("Auto") else txt.split(": ", 1)[1]
+        self.cfg["device_name"] = name
+        save_json(self.cfg_path, self.cfg)
+        self.engine.send("select_device", name)
 
     def calibrate(self):
         def done(result):
@@ -688,7 +689,11 @@ class App(tk.Tk):
             elif kind == "device":
                 self.engine.send("list_devices")
             elif kind == "devices":
-                self.dev_cb.configure(values=[f"{i}: {n}" for i, n in data])
+                self.dev_cb.configure(values=["Auto (DualSense en priorité)"] + [f"{i}: {n}" for i, n in data])
+                if not self.dev_var.get():
+                    want = self.cfg.get("device_name", "")
+                    self.dev_var.set(next((f"{i}: {n}" for i, n in data if n == want),
+                                          "Auto (DualSense en priorité)"))
             elif kind == "log":
                 self.log(data)
                 if "manette virtuelle indisponible" in data and not self.demo and not getattr(self, "_asked_vigem", 0):

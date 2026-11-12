@@ -357,3 +357,25 @@ def test_normalize_kbm_trigger():
     p = normalize_profile({"macros": [{"name": "a", "trigger": ["key:f", "key:nope", "mouse:x2", "CROSS",
                                                                 "wheel:up", "key:f"]}]})
     assert p["macros"][0]["trigger"] == ["key:f", "mouse:x2", "CROSS", "wheel:up"]
+
+
+def test_device_choice_skips_virtual_pad():
+    from remapper.input_backend import PygameInput
+    inp = object.__new__(PygameInput)
+    inp.wanted_name = ""
+    choose = inp._choose
+    assert choose(["Xbox 360 Controller", "DualSense Wireless Controller"]) == 1
+    assert choose(["Controller (Xbox 360 For Windows)", "Steam Virtual Gamepad", "PS5 Controller"]) == 2
+    assert choose(["Xbox 360 Controller", "Wireless Controller"]) == 1          # DS4 / DualSense en DInput
+    assert choose(["Xbox 360 Controller", "8BitDo Pro 2"]) == 1                  # pas de Sony : pas la virtuelle
+    assert choose(["Xbox 360 Controller"]) == 0
+    inp.wanted_name = "8BitDo Pro 2"
+    assert choose(["DualSense Wireless Controller", "8BitDo Pro 2"]) == 1       # choix manuel respecté
+
+
+def test_macro_start_is_reported():
+    p = default_profile()
+    p["macros"] = [macro(name="Hado", trigger=["CROSS"], steps=[{"type": "tap", "targets": ["pad:SQUARE"], "ms": 30}])]
+    core = EngineCore(p)
+    core.process({"CROSS": True}, AX0, 0.0)
+    assert core.started == ["Hado"]
