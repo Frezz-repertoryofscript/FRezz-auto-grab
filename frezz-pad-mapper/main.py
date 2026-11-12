@@ -17,6 +17,21 @@ def base_dir():
     return os.path.dirname(os.path.abspath(__file__))
 
 
+def seed_profiles(root):
+    """Exe autonome : copie les profils fournis à côté de l'exe au premier lancement."""
+    bundled = os.path.join(getattr(sys, "_MEIPASS", ""), "profiles")
+    target = os.path.join(root, "profiles")
+    if not getattr(sys, "frozen", False) or not os.path.isdir(bundled):
+        return
+    os.makedirs(target, exist_ok=True)
+    if any(f.endswith(".json") for f in os.listdir(target)):
+        return
+    import shutil
+    for f in os.listdir(bundled):
+        if f.endswith(".json"):
+            shutil.copy2(os.path.join(bundled, f), os.path.join(target, f))
+
+
 def headless(profile_name, mode):
     from remapper.engine import Engine
     from remapper.realtime import boost_process
@@ -64,6 +79,7 @@ def main():
     ap.add_argument("--mode", default="ultra", choices=["eco", "rapide", "ultra", "extreme"],
                     help="mode de performance en mode headless")
     args = ap.parse_args()
+    seed_profiles(base_dir())
     if args.headless:
         return headless(args.profile, args.mode)
     from remapper.gui.app import App

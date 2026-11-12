@@ -28,7 +28,14 @@ Raccourcis par défaut (modifiables dans l'onglet *Raccourcis*) :
 - **PS + R1 / PS + L1** : profil suivant / précédent (petite vibration de confirmation)
 - **PS + Create** : stopper toutes les macros
 
-## Installation (Windows 10 / 11)
+## Télécharger l'exe (le plus simple)
+
+Télécharge **`FRezzPadMapper.exe`** dans les *Releases* du dépôt (« FRezz Pad Mapper (dernière version) »),
+compilé automatiquement sous Windows par GitHub Actions à chaque modification. Pas besoin de Python.
+Il faut juste installer le pilote **[ViGEmBus](https://github.com/nefarius/ViGEmBus/releases)** (et HidHide, voir plus bas).
+Les profils sont créés dans un dossier `profiles` à côté de l'exe.
+
+## Installation depuis les sources (Windows 10 / 11)
 
 1. Installe **Python 3.10+** depuis python.org (coche *Add Python to PATH*).
 2. Double-clique sur **`lancer.bat`** : il crée un environnement, installe les dépendances
@@ -39,7 +46,7 @@ Raccourcis par défaut (modifiables dans l'onglet *Raccourcis*) :
    la vraie manette **et** la virtuelle et reçoit les appuis en double.
 4. Dans Steam, désactive *Steam Input* pour la manette PlayStation sur le jeu concerné.
 
-Pour faire un `.exe` autonome : lance **`build_exe.bat`** (PyInstaller) → `dist\FRezzPadMapper\FRezzPadMapper.exe`.
+Pour faire un `.exe` autonome toi-même : lance **`build_exe.bat`** (PyInstaller) → `dist\FRezzPadMapper.exe`.
 
 ### Lancement en ligne de commande
 

@@ -4,8 +4,7 @@ cd /d "%~dp0"
 if not exist .venv ( py -3 -m venv .venv )
 call .venv\Scripts\activate.bat
 pip install -r requirements.txt pyinstaller
-pyinstaller --noconfirm --windowed --name FRezzPadMapper --collect-all vgamepad main.py
-xcopy /E /I /Y profiles dist\FRezzPadMapper\profiles
+pyinstaller --noconfirm --onefile --windowed --name FRezzPadMapper --collect-all vgamepad --add-data "profiles;profiles" main.py
 echo.
 echo Executable : dist\FRezzPadMapper\FRezzPadMapper.exe
 pause

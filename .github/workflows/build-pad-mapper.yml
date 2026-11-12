@@ -1,0 +1,92 @@
+name: Build FRezz Pad Mapper (Windows .exe)
+
+on:
+  push:
+    paths:
+      - "frezz-pad-mapper/**"
+      - ".github/workflows/build-pad-mapper.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: frezz-pad-mapper
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Dépendances
+        timeout-minutes: 10
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame pyinstaller pytest
+          pip install vgamepad
+
+      - name: Tests (sous Windows)
+        run: python -m pytest -q tests
+
+      - name: Mesure de la boucle temps réel sous Windows
+        shell: python
+        run: |
+          import sys, time
+          sys.path.insert(0, ".")
+          from remapper.engine import Engine
+          from remapper.input_backend import NullInput, _empty_state
+          from remapper.output_backend import NullOutput
+          from remapper.realtime import boost_process
+          from remapper.profile import ProfileStore
+          class FakeIn(NullInput):
+              def poll(self):
+                  st = _empty_state(); st["connected"] = True; st["buttons"]["CROSS"] = True
+                  return st
+          undo = boost_process()
+          for mode in ["eco", "rapide", "ultra", "extreme"]:
+              e = Engine(FakeIn, NullOutput, mode=mode, log=print)
+              e.set_profile(ProfileStore("profiles").load("Exemples"))
+              e.start(); time.sleep(2.5); s = e.stats; e.stop()
+              print(f"{mode:8} {s['hz']:6.0f} Hz  traitement {s['proc_us']:5.1f} us  retard reveil max {s['late_ms']:6.3f} ms")
+          undo()
+
+      - name: Compilation de l'exe
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --name FRezzPadMapper
+          --collect-all vgamepad --add-data "profiles;profiles" main.py
+
+      - name: Paquet zip
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item dist/FRezzPadMapper.exe release/
+          Copy-Item README.md release/
+          Compress-Archive -Path release/* -DestinationPath FRezzPadMapper-windows.zip -Force
+          Get-Item dist/FRezzPadMapper.exe, FRezzPadMapper-windows.zip | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FRezzPadMapper-windows
+          path: |
+            frezz-pad-mapper/dist/FRezzPadMapper.exe
+            frezz-pad-mapper/FRezzPadMapper-windows.zip
+
+      - name: Publication (release « pad-mapper-latest »)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pad-mapper-latest
+          name: FRezz Pad Mapper (dernière version)
+          prerelease: true
+          target_commitish: ${{ github.sha }}
+          body: |
+            Exécutable Windows de FRezz Pad Mapper (remappage + macros manette PS5), compilé automatiquement.
+            Télécharge **FRezzPadMapper.exe** et lance-le. Pilote requis : ViGEmBus (voir README).
+          files: |
+            frezz-pad-mapper/dist/FRezzPadMapper.exe
+            frezz-pad-mapper/FRezzPadMapper-windows.zip
