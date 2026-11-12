@@ -1,0 +1,407 @@
+{
+  "version": 1,
+  "name": "Exemples",
+  "virtual_pad": "x360",
+  "buttons": {
+    "CROSS": "pad:CROSS",
+    "CIRCLE": "pad:CIRCLE",
+    "SQUARE": "pad:SQUARE",
+    "TRIANGLE": "pad:TRIANGLE",
+    "L1": "pad:L1",
+    "R1": "pad:R1",
+    "L2": "pad:L2",
+    "R2": "pad:R2",
+    "L3": "pad:L3",
+    "R3": "pad:R3",
+    "DPAD_UP": "pad:DPAD_UP",
+    "DPAD_DOWN": "pad:DPAD_DOWN",
+    "DPAD_LEFT": "pad:DPAD_LEFT",
+    "DPAD_RIGHT": "pad:DPAD_RIGHT",
+    "CREATE": "pad:CREATE",
+    "OPTIONS": "pad:OPTIONS",
+    "PS": "pad:PS",
+    "TOUCHPAD": "pad:TOUCHPAD",
+    "MUTE": "macro:Demi-tour"
+  },
+  "sticks": {
+    "LEFT": {
+      "target": "pad:LS",
+      "deadzone": 0.08,
+      "outer": 0.98,
+      "anti_deadzone": 0.0,
+      "sensitivity": 1.0,
+      "curve": 1.0,
+      "invert_x": false,
+      "invert_y": false,
+      "mouse_speed": 1400.0,
+      "digital_threshold": 0.5
+    },
+    "RIGHT": {
+      "target": "pad:RS",
+      "deadzone": 0.08,
+      "outer": 0.98,
+      "anti_deadzone": 0.0,
+      "sensitivity": 1.0,
+      "curve": 1.0,
+      "invert_x": false,
+      "invert_y": false,
+      "mouse_speed": 1400.0,
+      "digital_threshold": 0.5
+    }
+  },
+  "triggers": {
+    "L2": {
+      "deadzone": 0.02,
+      "outer": 0.98,
+      "threshold": 0.35
+    },
+    "R2": {
+      "deadzone": 0.02,
+      "outer": 0.98,
+      "threshold": 0.35
+    }
+  },
+  "turbo": {
+    "R2": {
+      "enabled": false,
+      "rate": 12.0,
+      "mode": "hold"
+    }
+  },
+  "macros": [
+    {
+      "name": "Tir rapide ✕",
+      "enabled": true,
+      "trigger": [
+        "L1",
+        "CROSS"
+      ],
+      "mode": "toggle",
+      "repeat": 0,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "tap",
+          "targets": [
+            "pad:CROSS"
+          ],
+          "ms": 30
+        },
+        {
+          "type": "wait",
+          "ms": 30
+        }
+      ]
+    },
+    {
+      "name": "Quart de cercle + □",
+      "enabled": true,
+      "trigger": [
+        "L1",
+        "SQUARE"
+      ],
+      "mode": "press",
+      "repeat": 1,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "press",
+          "targets": [
+            "pad:DPAD_DOWN"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 33
+        },
+        {
+          "type": "press",
+          "targets": [
+            "pad:DPAD_RIGHT"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 33
+        },
+        {
+          "type": "release",
+          "targets": [
+            "pad:DPAD_DOWN"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 33
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:SQUARE"
+          ],
+          "ms": 50
+        },
+        {
+          "type": "release_all"
+        }
+      ]
+    },
+    {
+      "name": "Dragon punch + △",
+      "enabled": true,
+      "trigger": [
+        "L1",
+        "TRIANGLE"
+      ],
+      "mode": "press",
+      "repeat": 1,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "tap",
+          "targets": [
+            "pad:DPAD_RIGHT"
+          ],
+          "ms": 33
+        },
+        {
+          "type": "press",
+          "targets": [
+            "pad:DPAD_DOWN"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 33
+        },
+        {
+          "type": "press",
+          "targets": [
+            "pad:DPAD_RIGHT"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 33
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:TRIANGLE"
+          ],
+          "ms": 50
+        },
+        {
+          "type": "release_all"
+        }
+      ]
+    },
+    {
+      "name": "Combo □□△○",
+      "enabled": true,
+      "trigger": [
+        "L1",
+        "CIRCLE"
+      ],
+      "mode": "press",
+      "repeat": 1,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "tap",
+          "targets": [
+            "pad:SQUARE"
+          ],
+          "ms": 40
+        },
+        {
+          "type": "wait",
+          "ms": 120
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:SQUARE"
+          ],
+          "ms": 40
+        },
+        {
+          "type": "wait",
+          "ms": 120
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:TRIANGLE"
+          ],
+          "ms": 40
+        },
+        {
+          "type": "wait",
+          "ms": 180
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:CIRCLE"
+          ],
+          "ms": 60
+        }
+      ]
+    },
+    {
+      "name": "Drop shot",
+      "enabled": true,
+      "trigger": [
+        "R1",
+        "CIRCLE"
+      ],
+      "mode": "press",
+      "repeat": 1,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "press",
+          "targets": [
+            "pad:R2"
+          ]
+        },
+        {
+          "type": "wait",
+          "ms": 20
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:CIRCLE"
+          ],
+          "ms": 60
+        },
+        {
+          "type": "wait",
+          "ms": 400
+        },
+        {
+          "type": "release_all"
+        }
+      ]
+    },
+    {
+      "name": "Anti-AFK",
+      "enabled": false,
+      "trigger": [
+        "TOUCHPAD",
+        "OPTIONS"
+      ],
+      "mode": "toggle",
+      "repeat": 0,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "axis",
+          "axis": "LX",
+          "value": 1.0
+        },
+        {
+          "type": "wait",
+          "ms": 400
+        },
+        {
+          "type": "axis",
+          "axis": "LX",
+          "value": -1.0
+        },
+        {
+          "type": "wait",
+          "ms": 400
+        },
+        {
+          "type": "axis",
+          "axis": "LX",
+          "value": 0.0
+        },
+        {
+          "type": "tap",
+          "targets": [
+            "pad:CROSS"
+          ],
+          "ms": 60
+        },
+        {
+          "type": "wait",
+          "ms": 20000
+        }
+      ]
+    },
+    {
+      "name": "Demi-tour",
+      "enabled": true,
+      "trigger": [],
+      "mode": "press",
+      "repeat": 1,
+      "speed": 1.0,
+      "jitter_ms": 0,
+      "block_trigger": true,
+      "hold_ms": 400,
+      "double_ms": 300,
+      "steps": [
+        {
+          "type": "axis",
+          "axis": "RX",
+          "value": 1.0
+        },
+        {
+          "type": "wait",
+          "ms": 250
+        },
+        {
+          "type": "axis",
+          "axis": "RX",
+          "value": 0.0
+        }
+      ]
+    }
+  ],
+  "hotkeys": {
+    "next_profile": [
+      "PS",
+      "R1"
+    ],
+    "prev_profile": [
+      "PS",
+      "L1"
+    ],
+    "toggle_pause": [
+      "PS",
+      "OPTIONS"
+    ],
+    "stop_macros": [
+      "PS",
+      "CREATE"
+    ]
+  }
+}
