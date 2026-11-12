@@ -5,6 +5,26 @@ import sys
 from .constants import PHYS_AXES
 
 
+def vigembus_installer():
+    """Chemin de l'installeur ViGEmBus fourni avec vgamepad (sans importer vgamepad)."""
+    import importlib.util
+    import os
+    import platform
+    arch = "x64" if platform.machine().endswith("64") else "x86"
+    try:
+        spec = importlib.util.find_spec("vgamepad")
+    except (ImportError, ValueError):
+        spec = None
+    roots = list(spec.submodule_search_locations) if spec and spec.submodule_search_locations else []
+    if hasattr(sys, "_MEIPASS"):
+        roots.append(os.path.join(sys._MEIPASS, "vgamepad"))
+    for root in roots:
+        path = os.path.join(root, "win", "vigem", "install", arch, f"ViGEmBusSetup_{arch}.msi")
+        if os.path.isfile(path):
+            return path
+    return None
+
+
 # ============================================================ manette virtuelle
 class VirtualPad:
     """Xbox 360 ou DualShock 4 virtuelle via ViGEmBus."""

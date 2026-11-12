@@ -553,6 +553,9 @@ class App(tk.Tk):
         self.perf_lbl = ttk.Label(ef, text="", style="Muted.TLabel", font=("Consolas", 10))
         self.perf_lbl.grid(row=2, column=0, columnspan=2, sticky="w", padx=8, pady=(2, 8))
 
+        ttk.Button(ef, text="Installer le pilote ViGEmBus", command=self.install_vigembus).grid(
+            row=0, column=2, sticky="w", padx=8)
+
         cf = ttk.LabelFrame(f, text="Manette physique")
         cf.pack(fill="x", padx=12, pady=6)
         ttk.Button(cf, text="🎯 Assistant de calibration", command=self.calibrate).pack(side="left", padx=6, pady=8)
@@ -582,6 +585,22 @@ class App(tk.Tk):
             if m["label"] == self.mode_var.get():
                 self.cfg["perf_mode"] = k
         save_json(self.cfg_path, self.cfg)
+        self.restart_engine()
+
+    def install_vigembus(self):
+        from ..output_backend import vigembus_installer
+        msi = vigembus_installer()
+        if not msi:
+            messagebox.showinfo("ViGEmBus", "Installeur introuvable. Télécharge ViGEmBus sur :\n"
+                                "https://github.com/nefarius/ViGEmBus/releases")
+            return
+        try:
+            os.startfile(msi)  # type: ignore[attr-defined]
+        except AttributeError:
+            messagebox.showinfo("ViGEmBus", msi)
+            return
+        messagebox.showinfo("ViGEmBus", "Termine l'installation du pilote, puis clique OK :\n"
+                            "le moteur va redémarrer.")
         self.restart_engine()
 
     def _reset_calibration(self):
@@ -668,6 +687,12 @@ class App(tk.Tk):
                 self.dev_cb.configure(values=[f"{i}: {n}" for i, n in data])
             elif kind == "log":
                 self.log(data)
+                if "manette virtuelle indisponible" in data and not self.demo and not getattr(self, "_asked_vigem", 0):
+                    self._asked_vigem = True
+                    if messagebox.askyesno("Pilote manquant",
+                                           "Le pilote ViGEmBus (manette virtuelle) n'est pas installé.\n"
+                                           "L'installer maintenant ?"):
+                        self.install_vigembus()
             elif kind == "error":
                 messagebox.showerror("Erreur du moteur", data[-1500:])
         while True:

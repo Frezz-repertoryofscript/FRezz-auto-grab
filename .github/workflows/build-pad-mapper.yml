@@ -10,6 +10,10 @@ on:
 permissions:
   contents: write
 
+env:
+  # sinon « pip install vgamepad » ouvre l'installeur graphique de ViGEmBus et bloque
+  VGAMEPAD_SKIP_VIGEMBUS_INSTALL: "true"
+
 jobs:
   build:
     runs-on: windows-latest
@@ -59,7 +63,19 @@ jobs:
       - name: Compilation de l'exe
         run: >
           pyinstaller --noconfirm --onefile --windowed --name FRezzPadMapper
-          --collect-all vgamepad --add-data "profiles;profiles" main.py
+          --collect-data vgamepad --collect-binaries vgamepad
+          --hidden-import vgamepad.win.virtual_gamepad --hidden-import vgamepad.win.vigem_client
+          --add-data "profiles;profiles" main.py
+
+      - name: Vérification du contenu de l'exe
+        shell: python
+        run: |
+          from PyInstaller.archive.readers import CArchiveReader
+          names = list(CArchiveReader("dist/FRezzPadMapper.exe").toc)
+          for key in ("ViGEmClient.dll", "ViGEmBusSetup_x64.msi", "Exemples.json"):
+              hits = [n for n in names if key in n]
+              print(key, "->", hits)
+              assert hits, f"{key} absent de l'exe"
 
       - name: Paquet zip
         shell: pwsh
