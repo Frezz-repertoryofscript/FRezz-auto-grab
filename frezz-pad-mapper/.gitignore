@@ -6,3 +6,4 @@ dist/
 *.spec
 config/
 .pytest_cache/
+release/
