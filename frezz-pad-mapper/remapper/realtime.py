@@ -100,8 +100,14 @@ def boost_process(log=print):
         from ctypes import wintypes
         k32 = ctypes.WinDLL("kernel32", use_last_error=True)
         winmm = ctypes.WinDLL("winmm")
+        # Types explicites : sans eux, le pseudo-handle -1 déborde (OverflowError en 64 bits)
         k32.GetCurrentProcess.restype = wintypes.HANDLE
         k32.GetCurrentThread.restype = wintypes.HANDLE
+        k32.SetPriorityClass.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+        k32.SetPriorityClass.restype = wintypes.BOOL
+        if hasattr(k32, "SetProcessInformation"):
+            k32.SetProcessInformation.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p, wintypes.DWORD]
+            k32.SetProcessInformation.restype = wintypes.BOOL
         if winmm.timeBeginPeriod(1) == 0:
             undo.append(lambda: winmm.timeEndPeriod(1))
             done.append("timer 1 ms")
@@ -133,14 +139,21 @@ def boost_thread(log=print):
         from ctypes import wintypes
         k32 = ctypes.WinDLL("kernel32", use_last_error=True)
         k32.GetCurrentThread.restype = wintypes.HANDLE
-        k32.SetThreadPriority(k32.GetCurrentThread(), 15)  # THREAD_PRIORITY_TIME_CRITICAL
+        k32.SetThreadPriority.argtypes = [wintypes.HANDLE, ctypes.c_int]
+        k32.SetThreadPriority.restype = wintypes.BOOL
+        if k32.SetThreadPriority(k32.GetCurrentThread(), 15):  # THREAD_PRIORITY_TIME_CRITICAL
+            log("Thread moteur : priorité temps critique")
         try:
             avrt = ctypes.WinDLL("avrt")
             avrt.AvSetMmThreadCharacteristicsW.restype = wintypes.HANDLE
+            avrt.AvSetMmThreadCharacteristicsW.argtypes = [wintypes.LPCWSTR, ctypes.POINTER(wintypes.DWORD)]
+            avrt.AvSetMmThreadPriority.argtypes = [wintypes.HANDLE, ctypes.c_int]
+            avrt.AvRevertMmThreadCharacteristics.argtypes = [wintypes.HANDLE]
             task = wintypes.DWORD(0)
             h = avrt.AvSetMmThreadCharacteristicsW("Games", ctypes.byref(task))
             if h:
                 avrt.AvSetMmThreadPriority(h, 2)  # AVRT_PRIORITY_HIGH
+                log("Thread moteur : MMCSS « Games »")
                 undo.append(lambda: avrt.AvRevertMmThreadCharacteristics(h))
         except OSError:
             pass

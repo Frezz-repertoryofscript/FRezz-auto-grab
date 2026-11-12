@@ -52,13 +52,19 @@ jobs:
               def poll(self):
                   st = _empty_state(); st["connected"] = True; st["buttons"]["CROSS"] = True
                   return st
-          undo = boost_process()
+          logs = []
+          def log(m):
+              print(m); logs.append(m)
+          undo = boost_process(log)
           for mode in ["eco", "rapide", "ultra", "extreme"]:
-              e = Engine(FakeIn, NullOutput, mode=mode, log=print)
+              e = Engine(FakeIn, NullOutput, mode=mode, log=log)
               e.set_profile(ProfileStore("profiles").load("Exemples"))
               e.start(); time.sleep(2.5); s = e.stats; e.stop()
               print(f"{mode:8} {s['hz']:6.0f} Hz  traitement {s['proc_us']:5.1f} us  retard reveil max {s['late_ms']:6.3f} ms")
           undo()
+          bad = [m for m in logs if "partielles" in m or "non modifi" in m]
+          assert not bad, bad
+          assert any("priorit" in m and "haute" in m for m in logs), logs
 
       - name: Compilation de l'exe
         run: >
