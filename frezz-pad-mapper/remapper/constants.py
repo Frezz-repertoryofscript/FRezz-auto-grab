@@ -75,6 +75,7 @@ STEP_TYPES = {
     "release": "Relâcher",
     "wait": "Attendre",
     "axis": "Axe / stick",
+    "mouse_move": "Souris : déplacer",
     "release_all": "Tout relâcher",
 }
 
@@ -89,6 +90,35 @@ def all_targets(macro_names=()):
     out += [f"macro:{n}" for n in macro_names]
     out += [f"action:{a}" for a in ACTIONS]
     return out
+
+
+def kbm_inputs():
+    """Touches / boutons souris utilisables comme DÉCLENCHEURS (entrée)."""
+    return ([f"key:{k}" for k in KEYS] + [f"mouse:{m}" for m in MOUSE_BUTTONS]
+            + [f"wheel:{w}" for w in WHEEL])
+
+
+def is_input(name):
+    """Entrée valide pour un déclencheur : bouton manette, touche, bouton souris ou molette."""
+    if name in PHYS_BUTTONS:
+        return True
+    kind, _, n = name.partition(":")
+    return (kind == "key" and n in KEYS) or (kind == "mouse" and n in MOUSE_BUTTONS) or \
+        (kind == "wheel" and n in WHEEL)
+
+
+def input_label(name):
+    if name in LABELS:
+        return LABELS[name]
+    kind, _, n = name.partition(":")
+    if kind == "key":
+        return n.upper() if len(n) == 1 else n.capitalize()
+    if kind == "mouse":
+        return {"left": "Clic gauche", "right": "Clic droit", "middle": "Clic molette",
+                "x1": "Souris X1", "x2": "Souris X2"}.get(n, n)
+    if kind == "wheel":
+        return "Molette ↑" if n == "up" else "Molette ↓"
+    return name
 
 
 def step_targets():

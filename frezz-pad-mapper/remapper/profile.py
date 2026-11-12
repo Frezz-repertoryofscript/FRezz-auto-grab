@@ -5,7 +5,7 @@ import json
 import os
 import re
 
-from .constants import PHYS_BUTTONS, MACRO_MODES, STEP_TYPES
+from .constants import PHYS_BUTTONS, MACRO_MODES, STEP_TYPES, is_input
 
 PROFILE_VERSION = 1
 
@@ -100,6 +100,10 @@ def normalize_step(step):
         out["axis"] = str(step.get("axis", "LX"))
         lo = 0.0 if out["axis"] in ("L2", "R2") else -1.0
         out["value"] = round(_num(step.get("value"), 0.0, lo, 1.0), 3)
+    elif typ == "mouse_move":
+        out["dx"] = int(_num(step.get("dx"), 0, -10000, 10000))
+        out["dy"] = int(_num(step.get("dy"), 0, -10000, 10000))
+        out["ms"] = int(_num(step.get("ms"), 0, 0, 60000))   # 0 = instantané, sinon glissé
     return out
 
 
@@ -108,7 +112,7 @@ def normalize_macro(m):
     base.update({k: v for k, v in m.items() if k in base})
     base["name"] = str(base["name"]).strip() or "Macro"
     base["enabled"] = bool(base["enabled"])
-    base["trigger"] = [b for b in base["trigger"] if b in PHYS_BUTTONS]
+    base["trigger"] = list(dict.fromkeys(b for b in base["trigger"] if isinstance(b, str) and is_input(b)))
     if base["mode"] not in MACRO_MODES:
         base["mode"] = "press"
     base["repeat"] = int(_num(base["repeat"], 1, 0, 100000))
@@ -156,7 +160,7 @@ def normalize_profile(p):
     if isinstance(p.get("hotkeys"), dict):
         for k, v in p["hotkeys"].items():
             if k in out["hotkeys"] and isinstance(v, list):
-                out["hotkeys"][k] = [b for b in v if b in PHYS_BUTTONS]
+                out["hotkeys"][k] = [b for b in v if isinstance(b, str) and is_input(b)]
     return out
 
 

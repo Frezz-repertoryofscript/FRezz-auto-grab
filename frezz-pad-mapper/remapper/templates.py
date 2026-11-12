@@ -31,6 +31,10 @@ def axis(a, v):
 
 RELEASE_ALL = {"type": "release_all"}
 
+
+def move(dx, dy, ms=0):
+    return {"type": "mouse_move", "dx": dx, "dy": dy, "ms": ms}
+
 TEMPLATES = {
     "Tir rapide ✕ (toggle)": lambda: _m(
         "Tir rapide ✕", "toggle", [tap("pad:CROSS", 30), wait(30)], repeat=0),
@@ -67,6 +71,15 @@ TEMPLATES = {
                                axis("LX", 0.0), tap("pad:CROSS", 60), wait(20000)], repeat=0),
     "Tourner caméra 180°": lambda: _m(
         "Demi-tour", "press", [axis("RX", 1.0), wait(250), axis("RX", 0.0)]),
+    "Clic auto (bouton souris X1, toggle)": lambda: _m(
+        "Clic auto", "toggle", [tap("mouse:left", 15), wait(35)], trigger=["mouse:x1"], repeat=0),
+    "Spam touche E (maintien de E)": lambda: _m(
+        "Spam E", "hold", [tap("key:e", 20), wait(40)], trigger=["key:e"], repeat=0),
+    "Demi-tour souris (molette clic + glissé)": lambda: _m(
+        "Demi-tour souris", "press", [move(1800, 0, 120)], trigger=["mouse:middle"]),
+    "Saut + accroupi (Espace puis Ctrl)": lambda: _m(
+        "Saut accroupi", "press", [tap("key:space", 30), wait(80), tap("key:ctrl", 200)],
+        trigger=["mouse:x2"]),
     "Texte « gg » au clavier": lambda: _m(
         "gg", "press", [tap("key:enter", 30), wait(80), tap("key:g", 30), wait(30),
                         tap("key:g", 30), wait(30), tap("key:enter", 30)]),

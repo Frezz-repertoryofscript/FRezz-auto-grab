@@ -13,6 +13,7 @@ Logiciel de **remappage** et de **macros** pour manette **PS5 (DualSense)** sur 
 | 🎯 **Gâchettes** | Analogique conservé, zone morte, seuil d'appui digital, remap vers touche / clic |
 | ⚡ **Macros & combos** | Liste de macros illimitée, séquences avec **délais en ms**, appuis simultanés, maintien / relâche, mouvements de stick, gâchettes analogiques |
 | 🎮 **Déclencheurs** | Un bouton **ou un combo** (ex. L1 + □). Le combo le plus long est prioritaire. Option pour bloquer les boutons déclencheurs |
+| ⌨️🖱 **Clavier / souris** | Déclencheurs et raccourcis au **clavier** (F, F8, Shift…) ou à la **souris** (clics, X1/X2, molette), seuls ou mélangés avec la manette (ex. L1 + Shift). Enregistrement des macros au clavier/souris, pas « Souris : déplacer » (instantané ou glissé) |
 | 🔄 **Modes** | Appui (joue N fois), Maintien (boucle tant que tenu), Toggle (start / stop), Relâchement, Double appui, Appui long |
 | ⏱ **Timing** | Boucle à 1000 Hz, vitesse × globale, aléa ± ms (humanisation), répétitions (0 = infini) |
 | ⏺ **Enregistrement** | Enregistre un combo joué sur la manette avec son timing exact, puis édite-le |
@@ -106,13 +107,15 @@ Pour gagner encore :
 ## Créer une macro / un combo
 
 1. Onglet **Macros & combos** → *Nouvelle* (ou *Modèles…*).
-2. **Déclencheur** : *🎮 Capturer* puis appuie sur le bouton ou le combo sur la manette, ou *Choisir…*.
+2. **Déclencheur** : *🎮 Capturer* puis appuie sur le bouton, la touche ou le combo (manette, clavier ou souris),
+   ou *Choisir…* (obligatoire pour un simple clic gauche / droit).
    Tu peux aussi laisser vide et assigner `macro:<nom>` à un bouton dans l'onglet *Remapping*.
 3. Ajoute les pas :
    - **Tap** : appui + relâche après *N* ms
    - **Appuyer** / **Relâcher** : garder enfoncé (pour tenir une direction pendant un combo)
    - **Attendre** : délai en ms
    - **Axe** : position d'un stick (-1 à 1) ou d'une gâchette (0 à 1)
+   - **Souris : déplacer** : X / Y en pixels, instantané ou réparti sur une durée
    - **Tout relâcher**
    Plusieurs cibles dans un même pas = appui simultané. Les boutons *Tap rapide* ajoutent un tap de 50 ms précédé d'une attente de 50 ms.
 4. Ou *● Enregistrer depuis la manette* : joue ton combo, *■ Arrêter* et c'est enregistré avec le timing.
@@ -142,6 +145,7 @@ frezz-pad-mapper/
 │   ├── realtime.py         timer haute résolution, priorités, anti-bridage Windows
 │   ├── macro.py            exécution des macros (machine à états, timing précis)
 │   ├── input_backend.py    lecture DualSense (pygame / SDL2)
+│   ├── kbm_input.py        clavier / souris en entrée (hooks Windows bas niveau)
 │   ├── output_backend.py   ViGEmBus + SendInput
 │   ├── profile.py          format et validation des profils
 │   ├── templates.py        modèles de macros

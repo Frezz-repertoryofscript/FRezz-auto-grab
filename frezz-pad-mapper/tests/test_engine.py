@@ -290,3 +290,70 @@ def test_engine_process_demo():
     finally:
         ep.stop()
     assert not ep.alive()
+
+
+def test_keyboard_mouse_triggers():
+    p = default_profile()
+    p["macros"] = [
+        macro(name="F", trigger=["key:f"], steps=[{"type": "tap", "targets": ["pad:CROSS"], "ms": 50}]),
+        macro(name="X1", trigger=["mouse:x1"], mode="toggle", repeat=0,
+              steps=[{"type": "tap", "targets": ["mouse:left"], "ms": 10}, {"type": "wait", "ms": 10}]),
+        macro(name="Mix", trigger=["L1", "key:shift"], steps=[{"type": "tap", "targets": ["key:e"], "ms": 50}]),
+    ]
+    core = EngineCore(p)
+    assert core.kbm_needed
+    assert ("key:f",) in core.kbm_block and ("L1", "key:shift") in core.kbm_block
+    out, _ = core.process({}, AX0, 0.0, kbm={"key:f"})
+    assert "pad:CROSS" in out.targets
+    assert "key:f" not in out.targets          # la touche physique n'est jamais renvoyée
+    core.process({}, AX0, 0.1, kbm={"mouse:x1"})
+    assert "X1" in core.running
+    core.process({}, AX0, 0.2)
+    core.process({}, AX0, 0.3, kbm={"mouse:x1"})
+    assert "X1" not in core.running
+    out, _ = core.process({"L1": True}, AX0, 1.0, kbm={"key:shift"})
+    assert "key:e" in out.targets and "pad:L1" not in out.targets
+
+
+def test_kbm_hotkey_and_no_listen_when_unused():
+    p = default_profile()
+    p["hotkeys"]["toggle_pause"] = ["key:f8"]
+    core = EngineCore(p)
+    _, actions = core.process({}, AX0, 0.0, kbm={"key:f8"})
+    assert actions == ["toggle_pause"] and core.paused
+    assert not EngineCore(default_profile()).kbm_needed
+
+
+def test_mouse_move_step_instant_and_glide():
+    p = default_profile()
+    p["macros"] = [macro(trigger=["CROSS"], steps=[
+        {"type": "mouse_move", "dx": 30, "dy": -10, "ms": 0},
+        {"type": "mouse_move", "dx": 0, "dy": 100, "ms": 100},
+    ])]
+    core = EngineCore(p)
+    out, _ = core.process({"CROSS": True}, AX0, 0.0)
+    assert out.mouse == (30, -10)
+    total = 0.0
+    t = 0.0
+    while t < 0.2:
+        t += 0.001
+        total += core.process({}, AX0, t)[0].mouse[1]
+    assert abs(total - 100) < 1e-6
+    assert not core.running
+
+
+def test_record_keyboard_and_strip_stop_click():
+    core = EngineCore(default_profile())
+    core.process({}, AX0, 0.0)
+    core.start_recording(0.0)
+    core.process({}, AX0, 0.1, kbm={"key:a"})
+    core.process({}, AX0, 0.15)
+    core.process({}, AX0, 0.5, kbm={"mouse:left"})   # clic sur « Arrêter »
+    steps = core.stop_recording(0.55)
+    assert steps == [{"type": "wait", "ms": 100}, {"type": "tap", "targets": ["key:a"], "ms": 50}]
+
+
+def test_normalize_kbm_trigger():
+    p = normalize_profile({"macros": [{"name": "a", "trigger": ["key:f", "key:nope", "mouse:x2", "CROSS",
+                                                                "wheel:up", "key:f"]}]})
+    assert p["macros"][0]["trigger"] == ["key:f", "mouse:x2", "CROSS", "wheel:up"]

@@ -5,7 +5,7 @@ import json
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
-from ..constants import MACRO_MODES, STEP_TYPES, PHYS_BUTTONS, LABELS, SHORT, target_label
+from ..constants import MACRO_MODES, STEP_TYPES, PHYS_BUTTONS, LABELS, SHORT, target_label, kbm_inputs, input_label
 from ..macro import macro_duration_ms
 from ..profile import default_macro, normalize_macro
 from ..templates import TEMPLATES
@@ -22,6 +22,8 @@ def step_text(s):
         return STEP_TYPES[t], "", f"{s['ms']} ms"
     if t == "axis":
         return STEP_TYPES[t], s["axis"], f"{s['value']:+.2f}"
+    if t == "mouse_move":
+        return STEP_TYPES[t], f"X {s['dx']:+d}   Y {s['dy']:+d}", f"{s['ms']} ms" if s["ms"] else "instantané"
     return STEP_TYPES[t], "", ""
 
 
@@ -113,7 +115,7 @@ class MacroTab(ttk.Frame):
 
         run = ttk.Frame(right)
         run.pack(side="bottom", fill="x", pady=(8, 0))
-        self.rec_btn = ttk.Button(run, text="● Enregistrer depuis la manette", command=self.toggle_record)
+        self.rec_btn = ttk.Button(run, text="● Enregistrer (manette / clavier / souris)", command=self.toggle_record)
         self.rec_btn.pack(side="left", padx=2)
         ttk.Button(run, text="▶ Tester", style="Accent.TButton", command=self.test).pack(side="left", padx=2)
         ttk.Button(run, text="■ Stopper les macros", command=lambda: self.app.engine.send("stop_macros")).pack(
@@ -128,8 +130,10 @@ class MacroTab(ttk.Frame):
         bar = ttk.Frame(sf)
         bar.pack(fill="x", padx=4, pady=4)
         for txt, typ in [("+ Tap", "tap"), ("+ Appuyer", "press"), ("+ Relâcher", "release"),
-                         ("+ Attendre", "wait"), ("+ Axe", "axis"), ("+ Tout relâcher", "release_all")]:
-            ttk.Button(bar, text=txt, command=lambda t=typ: self.add_step(t)).pack(side="left", padx=2)
+                         ("+ Attendre", "wait"), ("+ Axe", "axis"), ("+ Souris", "mouse_move"),
+                         ("+ Tout relâcher", "release_all")]:
+            ttk.Button(bar, text=txt, style="Small.TButton", width=len(txt),
+                       command=lambda t=typ: self.add_step(t)).pack(side="left", padx=2)
         quick = ttk.Frame(sf)
         quick.pack(fill="x", padx=4)
         ttk.Label(quick, text="Tap rapide :", style="Muted.TLabel").pack(side="left", padx=(2, 4))
@@ -308,15 +312,45 @@ class MacroTab(ttk.Frame):
         win.transient(self)
         win.configure(bg="#14161c")
         ttk.Label(win, text="Coche un ou plusieurs boutons (plusieurs = combo simultané)").grid(
-            row=0, column=0, columnspan=4, padx=10, pady=8)
+            row=0, column=0, columnspan=4, padx=10, pady=8, sticky="w")
         vars_ = {}
         for i, b in enumerate(PHYS_BUTTONS):
             vars_[b] = tk.BooleanVar(value=b in m["trigger"])
             ttk.Checkbutton(win, text=LABELS[b], variable=vars_[b]).grid(
                 row=1 + i // 4, column=i % 4, sticky="w", padx=10, pady=2)
 
+        kf = ttk.LabelFrame(win, text="Clavier / souris (peut se combiner avec la manette)")
+        kf.grid(row=10, column=0, columnspan=4, sticky="we", padx=10, pady=8)
+        kbm = [b for b in m["trigger"] if ":" in b]
+        lb = listbox(kf, height=4, width=30)
+        lb.grid(row=0, column=0, rowspan=3, padx=6, pady=6)
+
+        def fill():
+            lb.delete(0, "end")
+            for k in kbm:
+                lb.insert("end", f"{input_label(k)}   ({k})")
+        fill()
+        names = {f"{input_label(k)}  ({k})": k for k in kbm_inputs()}
+        add_var = tk.StringVar()
+        ttk.Combobox(kf, values=list(names), textvariable=add_var, width=26, state="readonly").grid(
+            row=0, column=1, padx=6, pady=4)
+
+        def add():
+            k = names.get(add_var.get())
+            if k and k not in kbm:
+                kbm.append(k)
+                fill()
+
+        def remove():
+            sel = lb.curselection()
+            if sel:
+                del kbm[sel[0]]
+                fill()
+        ttk.Button(kf, text="Ajouter", command=add).grid(row=1, column=1, sticky="we", padx=6)
+        ttk.Button(kf, text="Retirer", command=remove).grid(row=2, column=1, sticky="we", padx=6)
+
         def ok():
-            self._set_trigger([b for b in PHYS_BUTTONS if vars_[b].get()])
+            self._set_trigger([b for b in PHYS_BUTTONS if vars_[b].get()] + kbm)
             win.destroy()
         ttk.Button(win, text="OK", style="Accent.TButton", command=ok).grid(
             row=20, column=3, sticky="e", padx=10, pady=10)
@@ -420,7 +454,8 @@ class MacroTab(ttk.Frame):
                     "press": {"type": "press", "targets": []},
                     "release": {"type": "release", "targets": []},
                     "wait": {"type": "wait", "ms": 100},
-                    "axis": {"type": "axis", "axis": "LX", "value": 1.0}}
+                    "axis": {"type": "axis", "axis": "LX", "value": 1.0},
+                    "mouse_move": {"type": "mouse_move", "dx": 0, "dy": 20, "ms": 50}}
         if typ == "release_all":
             m["steps"].insert(pos, {"type": "release_all"})
             self._steps_changed([pos])
@@ -496,11 +531,11 @@ class MacroTab(ttk.Frame):
         if not self.recording:
             self.recording = True
             self.rec_btn.configure(text="■ Arrêter l'enregistrement")
-            self.rec_lbl.configure(text="● REC — joue ton combo sur la manette")
+            self.rec_lbl.configure(text="● REC — joue ton combo (manette, clavier, souris)")
             self.app.engine.send("record_start")
         else:
             self.recording = False
-            self.rec_btn.configure(text="● Enregistrer depuis la manette")
+            self.rec_btn.configure(text="● Enregistrer (manette / clavier / souris)")
             self.rec_lbl.configure(text="")
             self.app.engine.send("record_stop")
 

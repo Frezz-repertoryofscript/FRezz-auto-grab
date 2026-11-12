@@ -4,7 +4,7 @@ import time
 import tkinter as tk
 from tkinter import ttk
 
-from ..constants import STEP_TYPES, PAD_AXES, LABELS, step_targets, target_label, PHYS_BUTTONS
+from ..constants import STEP_TYPES, PAD_AXES, LABELS, step_targets, target_label, PHYS_BUTTONS, input_label
 from .widgets import BG, listbox
 
 
@@ -64,8 +64,24 @@ class StepDialog(tk.Toplevel):
                               style="Muted.TLabel")
         self.hint.grid(row=5, column=0, columnspan=3, sticky="w", **pad)
 
+        # Déplacement souris
+        self.mf = ttk.Frame(self)
+        self.mf.grid(row=7, column=0, columnspan=3, sticky="w", **pad)
+        self.dx_var = tk.IntVar(value=int(step.get("dx", 0)))
+        self.dy_var = tk.IntVar(value=int(step.get("dy", 0)))
+        self.mms_var = tk.IntVar(value=int(step.get("ms", 0)) if step.get("type") == "mouse_move" else 0)
+        for i, (txt, var, lo) in enumerate([("X (px, + = droite)", self.dx_var, -10000),
+                                            ("Y (px, + = bas)", self.dy_var, -10000),
+                                            ("Durée ms (0 = instantané)", self.mms_var, 0)]):
+            ttk.Label(self.mf, text=txt).grid(row=i, column=0, sticky="w", pady=2)
+            ttk.Spinbox(self.mf, from_=lo, to=10000, increment=5, textvariable=var, width=8).grid(
+                row=i, column=1, sticky="w", padx=8)
+        ttk.Label(self.mf, style="Muted.TLabel", text="Avec une durée, le mouvement est réparti en douceur\n"
+                                                      "et la macro attend la fin avant le pas suivant.").grid(
+            row=3, column=0, columnspan=2, sticky="w", pady=(4, 0))
+
         bf = ttk.Frame(self)
-        bf.grid(row=6, column=0, columnspan=3, sticky="e", **pad)
+        bf.grid(row=8, column=0, columnspan=3, sticky="e", **pad)
         ttk.Button(bf, text="Annuler", command=self.destroy).pack(side="right", padx=4)
         ttk.Button(bf, text="OK", style="Accent.TButton", command=self._ok).pack(side="right")
         self._fill()
@@ -108,6 +124,7 @@ class StepDialog(tk.Toplevel):
             w.grid() if show_ms else w.grid_remove()
         for w in (self.ax_lbl, self.ax_cb, self.val_scale, self.val_lbl, self.hint):
             w.grid() if show_ax else w.grid_remove()
+        self.mf.grid() if t == "mouse_move" else self.mf.grid_remove()
 
     def _ok(self):
         t = self._type()
@@ -121,6 +138,11 @@ class StepDialog(tk.Toplevel):
                 step["ms"] = max(0, int(float(self.ms_var.get())))
             except (tk.TclError, ValueError):
                 step["ms"] = 50
+        if t == "mouse_move":
+            try:
+                step.update(dx=int(self.dx_var.get()), dy=int(self.dy_var.get()), ms=max(0, int(self.mms_var.get())))
+            except (tk.TclError, ValueError):
+                step.update(dx=0, dy=0, ms=0)
         if t == "axis":
             step["axis"] = self.axis_var.get()
             v = round(self.val_var.get(), 2)
@@ -142,11 +164,17 @@ class CaptureDialog(tk.Toplevel):
         self.best = []
         self.started = False
         self.deadline = time.time() + 15
-        ttk.Label(self, text="Appuie sur le bouton ou le combo sur la manette,\npuis relâche tout.",
+        self.armed_at = time.time() + 0.35     # ignore le clic qui a ouvert la fenêtre
+        ttk.Label(self, text="Appuie sur le bouton / la touche / le combo\n"
+                             "(manette, clavier ou souris), puis relâche tout.",
                   style="H.TLabel", justify="center").pack(padx=20, pady=(16, 8))
         self.lbl = ttk.Label(self, text="…", style="Muted.TLabel")
         self.lbl.pack(padx=20, pady=6)
-        ttk.Button(self, text="Annuler", command=self.destroy).pack(pady=(4, 14))
+        ttk.Label(self, text="Clic gauche / droit seuls : passe par « Choisir… ».",
+                  style="Muted.TLabel").pack(padx=20)
+        ttk.Button(self, text="Annuler", command=self.destroy).pack(pady=(8, 14))
+        self.engine.send("kbm_listen", True)
+        self.bind("<Destroy>", lambda e: e.widget is self and self.engine.send("kbm_listen", False), add="+")
         self.grab_set()
         self.after(30, self._poll)
 
@@ -154,12 +182,19 @@ class CaptureDialog(tk.Toplevel):
         if not self.winfo_exists():
             return
         snap = self.engine.snapshot()
-        held = [b for b in PHYS_BUTTONS if snap.get("buttons", {}).get(b)]
+        if time.time() < self.armed_at:
+            self.after(20, self._poll)
+            return
+        buttons = snap.get("buttons", {})
+        held = [b for b in PHYS_BUTTONS if buttons.get(b)]
+        held += sorted(k for k, v in buttons.items() if v and ":" in k)
+        if held in (["mouse:left"], ["mouse:right"]):
+            held = []          # un simple clic = probablement un clic dans l'interface
         if held:
             self.started = True
             if len(held) >= len(self.best):
                 self.best = held
-            self.lbl.configure(text=" + ".join(LABELS.get(b, b) for b in held))
+            self.lbl.configure(text=" + ".join(input_label(b) for b in held))
         elif self.started:
             self.on_done(self.best)
             self.destroy()

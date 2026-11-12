@@ -11,6 +11,7 @@ from .constants import PHYS_BUTTONS, PHYS_AXES, STICKS
 from .macro import MacroInstance
 from .profile import normalize_profile, default_profile
 from .realtime import MODES, DEFAULT_MODE, Sleeper, boost_thread
+from .kbm_input import make_kbm, NullKbm
 
 STICK_AXES = {"pad:LS": ("LX", "LY"), "pad:RS": ("RX", "RY")}
 DIGITAL_STICK_KEYS = {
@@ -102,6 +103,12 @@ class EngineCore:
             fc = frozenset(c)
             self._supers[tuple(c)] = [tuple(x) for x in set(multi) if len(x) > len(fc) and fc < x]
         self._hotkeys = [(a, tuple(c)) for a, c in p["hotkeys"].items() if c]
+        # Clavier / souris en entrée : faut-il écouter, et quels combos bloquer ?
+        kbm_chords = [c for c in self.chords if any(":" in b for b in c)]
+        self.kbm_needed = bool(kbm_chords)
+        self.kbm_block = [tuple(m["trigger"]) for m in self.triggered
+                          if m["block_trigger"] and any(":" in b for b in m["trigger"])]
+        self.kbm_block += [c for _, c in self._hotkeys if any(":" in b for b in c)]
         self._macro_trigs = [(m, tuple(m["trigger"]), ("trig", m["name"]), m["mode"] == "long")
                              for m in self.triggered]
         rows = []
@@ -205,7 +212,7 @@ class EngineCore:
             steps.append({"type": "release", "targets": sorted(rec["targets"])})
         if any(rec["axes"].values()):
             steps.append({"type": "release_all"})
-        return compact_steps(steps)
+        return strip_stop_click(compact_steps(steps))
 
     def _rec_wait(self, rec, now):
         ms = int(round((now - rec["last"]) * 1000))
@@ -237,17 +244,19 @@ class EngineCore:
     # ------------------------------------------------------------------- tick
     def _shadowed(self, chord, cur):
         for c in self._supers.get(chord, ()):
-            if all(cur[b] for b in c):
+            if all(cur.get(b) for b in c):
                 return True
         return False
 
-    def process(self, buttons, axes, now):
+    def process(self, buttons, axes, now, kbm=()):
         dt = 0.0 if self.last_now is None else clamp(now - self.last_now, 0.0, 0.1)
         self.last_now = now
         cur = dict(_NO_BUTTONS)
         for b, v in buttons.items():
             if v:
                 cur[b] = True
+        for k in kbm:            # touches / boutons souris physiques enfoncés
+            cur[k] = True
         ax = dict(_ZERO_AXES)
         ax.update(axes)
         if ax["L2"] > self._thr[0]:
@@ -267,7 +276,7 @@ class EngineCore:
         # Raccourcis globaux (fonctionnent même en pause)
         chord_prev = self.chord_prev
         for action, chord in self._hotkeys:
-            held = all(cur[b] for b in chord) and not self._shadowed(chord, cur)
+            held = all(cur.get(b) for b in chord) and not self._shadowed(chord, cur)
             key = ("hotkey", action)
             if held and not chord_prev.get(key):
                 actions.append(action)
@@ -288,7 +297,7 @@ class EngineCore:
         # Macros déclenchées par bouton / combo
         trig = self.trig
         for m, chord, key, is_long in self._macro_trigs:
-            held = all(cur[b] for b in chord) and not self._shadowed(chord, cur)
+            held = all(cur.get(b) for b in chord) and not self._shadowed(chord, cur)
             st = trig.get(key)
             # rien n'a changé : on saute (sauf appui long qui dépend du temps)
             if st is None or st["prev"] != held or (is_long and held):
@@ -352,26 +361,39 @@ class EngineCore:
         out.mouse = (mx, my)
 
         if self.recording is not None:
-            self._record(rec_targets, oax, now)
+            # on enregistre aussi le clavier / la souris physiques (sans les renvoyer au jeu)
+            self._record(rec_targets | set(kbm) if kbm else rec_targets, oax, now)
         out.targets = rec_targets
 
         # Macros en cours : leurs boutons/axes s'ajoutent (et priment pour les axes)
         if self.running:
             for name in list(self.running):
                 inst = self.running[name]
-                if not inst.update(now):
+                alive = inst.update(now)
+                if inst.glides or inst.mouse_dx or inst.mouse_dy:
+                    dx, dy = inst.take_mouse(now)
+                    mx += dx
+                    my += dy
+                if not alive:
                     del self.running[name]
                     continue
                 out.targets |= inst.held
                 oax.update(inst.axes)
         if self.manual:
-            alive = []
+            alive_list = []
             for inst in self.manual:
-                if inst.update(now):
+                alive = inst.update(now)
+                if inst.glides or inst.mouse_dx or inst.mouse_dy:
+                    dx, dy = inst.take_mouse(now)
+                    mx += dx
+                    my += dy
+                if alive:
                     out.targets |= inst.held
                     oax.update(inst.axes)
-                    alive.append(inst)
-            self.manual = alive
+                    alive_list.append(inst)
+            self.manual = alive_list
+        if mx or my:
+            out.mouse = (mx, my)
 
         self.prev = cur
         return out, actions
@@ -395,6 +417,24 @@ class EngineCore:
         info = [(i.name, i.progress) for i in self.running.values() if not i.finished]
         info += [(i.name + " (test)", i.progress) for i in self.manual if not i.finished]
         return info
+
+
+def strip_stop_click(steps):
+    """Retire le clic gauche final (le clic sur « Arrêter l'enregistrement »)."""
+    steps = [dict(x) for x in steps]
+    while steps:
+        last = steps[-1]
+        if last["type"] == "wait":
+            steps.pop()
+        elif last["type"] in ("tap", "press", "release") and "mouse:left" in last["targets"]:
+            last["targets"] = [t for t in last["targets"] if t != "mouse:left"]
+            if not last["targets"]:
+                steps.pop()
+            else:
+                break
+        else:
+            break
+    return steps
 
 
 def compact_steps(steps):
@@ -442,6 +482,9 @@ class Engine:
         self.output = None
         self._snap = {}
         self.snap_queue = None     # utilisé quand le moteur tourne dans un processus séparé
+        self.kbm = NullKbm()
+        self.kbm_active = False
+        self.kbm_listen = False
         self.stats = {"hz": 0.0, "proc_us": 0.0, "late_ms": 0.0, "max_us": 0.0}
 
     # ----------------------------------------------- API (thread interface)
@@ -479,6 +522,8 @@ class Engine:
         self.log(f"Sortie : {self.output.describe()}")
         self.log(f"Mode : {MODES[self.mode]['label']}")
         undo_thread = boost_thread(self.log)
+        self.kbm = make_kbm(self.log)
+        self._kbm_sync()
         sleeper = Sleeper(MODES[self.mode]["spin_us"])
         perf = time.perf_counter
         tick = self.tick
@@ -497,11 +542,16 @@ class Engine:
                 if not cmds.empty():
                     self._commands(t0)
                 state = inp.poll()
+                kbm_pressed = ()
+                if self.kbm_active:
+                    kbm = self.kbm
+                    kbm.set_pad(frozenset(b for b, v in state["buttons"].items() if v))
+                    kbm_pressed = kbm.pressed(t0)
                 if state["events"]:
                     for ev in state["events"]:
                         self.log(ev)
                         self.events.put(("device", ev))
-                out, actions = core.process(state["buttons"], state["axes"], t0)
+                out, actions = core.process(state["buttons"], state["axes"], t0, kbm_pressed)
                 if not state["connected"]:
                     out = OutputState()
                 outp.apply(out, core.profile["virtual_pad"])
@@ -539,17 +589,26 @@ class Engine:
             except Exception:  # noqa: BLE001
                 pass
             sleeper.close()
+            self.kbm.close()
             undo_thread()
+
+    def _kbm_sync(self):
+        """Active l'écoute clavier/souris seulement quand c'est utile."""
+        core = self.core
+        need = core.kbm_needed or core.recording is not None or self.kbm_listen
+        self.kbm.configure(need, core.chords, core.kbm_block)
+        self.kbm_active = need
 
     def _publish(self, state, out):
         snap = {
             "connected": state["connected"],
             "device": state.get("name", ""),
             "battery": state.get("battery", ""),
-            "buttons": self.core.prev,          # remplacé (pas modifié) à chaque tick
+            "buttons": self.core.prev,          # remplacé (pas modifié) à chaque tick (+ clavier/souris)
             "axes": state["axes"],
             "raw": state.get("raw"),
             "out_targets": out.targets,
+            "kbm": sorted(k for k, v in self.core.prev.items() if v and ":" in k),
             "out_axes": out.axes,
             "running": self.core.running_info(),
             "paused": self.core.paused,
@@ -578,6 +637,7 @@ class Engine:
                 self.alive = False
             elif cmd == "profile":
                 self.core.set_profile(args[0])
+                self._kbm_sync()
             elif cmd == "run_macro":
                 self.core.run_manual(args[0], now)
             elif cmd == "stop_macros":
@@ -587,8 +647,13 @@ class Engine:
                 self.core.stop_all_macros()
             elif cmd == "record_start":
                 self.core.start_recording(now)
+                self._kbm_sync()
             elif cmd == "record_stop":
                 self.events.put(("recorded", self.core.stop_recording(now)))
+                self._kbm_sync()
+            elif cmd == "kbm_listen":       # capture d'un déclencheur depuis l'interface
+                self.kbm_listen = bool(args[0])
+                self._kbm_sync()
             elif cmd == "select_device":
                 self.input.select(args[0])
             elif cmd == "controller_map":

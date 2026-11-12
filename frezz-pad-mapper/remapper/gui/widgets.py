@@ -32,6 +32,8 @@ def apply_theme(root):
     s.configure("TLabelframe.Label", background=BG, foreground=ACCENT2, font=("Segoe UI Semibold", 10))
     s.configure("TButton", background=FIELD, foreground=FG, padding=(10, 4), borderwidth=0)
     s.map("TButton", background=[("active", "#323849"), ("pressed", ACCENT)])
+    s.configure("Small.TButton", background=FIELD, foreground=FG, padding=(6, 4), borderwidth=0)
+    s.map("Small.TButton", background=[("active", "#323849"), ("pressed", ACCENT)])
     s.configure("Accent.TButton", background=ACCENT, foreground="white")
     s.map("Accent.TButton", background=[("active", "#4a8fff")])
     s.configure("Danger.TButton", background="#4a1f27")
@@ -115,5 +117,5 @@ class LabeledScale(ttk.Frame):
 
 
 def chord_text(chord):
-    from ..constants import LABELS
-    return " + ".join(LABELS.get(b, b) for b in chord) if chord else "— aucun —"
+    from ..constants import input_label
+    return " + ".join(input_label(b) for b in chord) if chord else "— aucun —"

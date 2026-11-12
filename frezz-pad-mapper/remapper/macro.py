@@ -25,6 +25,8 @@ def compile_steps(steps):
             ops.append(("wait", s["ms"]))
         elif t == "axis":
             ops.append(("axis", s["axis"], s["value"]))
+        elif t == "mouse_move":
+            ops.append(("mouse", s["dx"], s["dy"], s["ms"]))
         elif t == "release_all":
             ops.append(("release_all",))
     return ops
@@ -36,6 +38,8 @@ def macro_duration_ms(macro):
     for op in compile_steps(macro["steps"]):
         if op[0] == "wait":
             total += op[1]
+        elif op[0] == "mouse":
+            total += op[3]
     return total / max(macro.get("speed", 1.0), 0.05)
 
 
@@ -62,6 +66,9 @@ class MacroInstance:
         self.next_time = now
         self.held = set()
         self.axes = {}
+        self.mouse_dx = 0.0        # déplacements souris instantanés en attente
+        self.mouse_dy = 0.0
+        self.glides = []           # [vx, vy, t_last, t_end] déplacements glissés
         self.finished = not self.ops
         self.rng = rng or random.Random()
         self.started_at = now
@@ -105,10 +112,37 @@ class MacroInstance:
                 self.next_time += self._wait(op[1])
             elif kind == "axis":
                 self.axes[op[1]] = op[2]
+            elif kind == "mouse":
+                _, dx, dy, ms = op
+                if ms <= 0:
+                    self.mouse_dx += dx
+                    self.mouse_dy += dy
+                else:
+                    start = self.next_time
+                    dur = self._wait(ms) or 1e-6
+                    self.glides.append([dx / dur, dy / dur, start, start + dur])
+                    self.next_time += dur
             elif kind == "release_all":
                 self.held.clear()
                 self.axes.clear()
         return not self.finished
+
+    def take_mouse(self, now):
+        """Déplacement souris à appliquer depuis le dernier appel."""
+        dx, dy = self.mouse_dx, self.mouse_dy
+        self.mouse_dx = self.mouse_dy = 0.0
+        if self.glides:
+            alive = []
+            for g in self.glides:
+                t = min(now, g[3])
+                if t > g[2]:
+                    dx += g[0] * (t - g[2])
+                    dy += g[1] * (t - g[2])
+                    g[2] = t
+                if g[2] < g[3]:
+                    alive.append(g)
+            self.glides = alive
+        return dx, dy
 
     def stop(self):
         self.finished = True
