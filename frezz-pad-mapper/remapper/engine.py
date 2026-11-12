@@ -467,7 +467,9 @@ class Engine:
 
     SNAPSHOT_EVERY = 0.008   # l'interface n'a pas besoin de plus de ~120 images/s
 
-    def __init__(self, input_factory, output_factory, mode=DEFAULT_MODE, log=print, tick_hz=None):
+    def __init__(self, input_factory, output_factory, mode=DEFAULT_MODE, log=print, tick_hz=None,
+                 kbm_factory=None):
+        self.kbm_factory = kbm_factory or make_kbm
         self.input_factory = input_factory
         self.output_factory = output_factory
         self.mode = mode if mode in MODES else DEFAULT_MODE
@@ -524,7 +526,7 @@ class Engine:
         self.log(f"Sortie : {self.output.describe()}")
         self.log(f"Mode : {MODES[self.mode]['label']}")
         undo_thread = boost_thread(self.log)
-        self.kbm = make_kbm(self.log)
+        self.kbm = self.kbm_factory(self.log)
         self._kbm_sync()
         sleeper = Sleeper(MODES[self.mode]["spin_us"])
         perf = time.perf_counter
@@ -554,8 +556,8 @@ class Engine:
                         self.log(ev)
                         self.events.put(("device", ev))
                 out, actions = core.process(state["buttons"], state["axes"], t0, kbm_pressed)
-                if not state["connected"]:
-                    out = OutputState()
+                # Pas de manette : l'état manette est neutre (tout relâché), mais les macros
+                # clavier / souris et les tests continuent de fonctionner.
                 outp.apply(out, core.profile["virtual_pad"])
                 for a in actions:
                     self.events.put(("action", a))

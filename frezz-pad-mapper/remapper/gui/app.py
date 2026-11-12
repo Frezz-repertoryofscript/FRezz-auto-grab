@@ -730,7 +730,8 @@ class App(tk.Tk):
         if snap["connected"]:
             self.conn_lbl.configure(text=f"✔ {snap['device']}", foreground=OK)
         else:
-            self.conn_lbl.configure(text="✖ Aucune manette détectée — branche ta DualSense", foreground=BAD)
+            self.conn_lbl.configure(text="✖ Aucune manette — les macros clavier / souris marchent quand même",
+                                    foreground=WARN)
         batt = snap.get("battery")
         self.batt_lbl.configure(text=f"Batterie : {batt}" if batt and batt != "unknown" else "")
         items = [f"▶ {n}  {int(p * 100)}%" for n, p in snap["running"]] or ["—"]

@@ -379,3 +379,45 @@ def test_macro_start_is_reported():
     core = EngineCore(p)
     core.process({"CROSS": True}, AX0, 0.0)
     assert core.started == ["Hado"]
+
+
+def test_keyboard_macro_works_without_controller():
+    """Bug : sans manette branchée, toutes les sorties étaient coupées."""
+    import time
+    from remapper.engine import Engine
+    from remapper.input_backend import NullInput
+    from remapper.kbm_input import NullKbm
+
+    class FakeKbm(NullKbm):
+        def __init__(self, log=None):
+            self.t0 = time.perf_counter()
+
+        def pressed(self, now):
+            return {"key:f"} if 0.05 < now - self.t0 < 0.1 else ()
+
+    class Recorder:
+        def __init__(self):
+            self.seen = set()
+
+        def describe(self):
+            return "rec"
+
+        def apply(self, out, kind):
+            self.seen |= out.targets
+
+        def close(self):
+            pass
+
+    rec = Recorder()
+    p = default_profile()
+    p["macros"] = [macro(name="Clavier", trigger=["key:f"],
+                         steps=[{"type": "tap", "targets": ["key:e"], "ms": 30}])]
+    eng = Engine(NullInput, lambda: rec, mode="rapide", log=lambda m: None, kbm_factory=FakeKbm)
+    eng.core.set_profile(p)
+    eng.start()
+    time.sleep(0.3)
+    eng.send("run_macro", macro(name="Test", steps=[{"type": "tap", "targets": ["key:t"], "ms": 20}]))
+    time.sleep(0.2)
+    eng.stop()
+    assert "key:e" in rec.seen      # macro déclenchée par le clavier, sans manette
+    assert "key:t" in rec.seen      # bouton « Tester » sans manette
