@@ -1,0 +1,56 @@
+{
+  "name": "TailChase",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "StudUI": { "$path": "src/shared/StudKit/StudUI.luau" },
+      "StudMotion": { "$path": "src/shared/StudKit/StudMotion.luau" },
+      "CheckUIIcons": { "$path": "src/shared/StudKit/CheckUIIcons.luau" },
+      "Shared": { "$path": "src/shared/Shared" },
+      "Remotes": {
+        "$className": "Folder",
+        "RoundState": { "$className": "RemoteEvent" },
+        "Notify": { "$className": "RemoteEvent" },
+        "RoleAssigned": { "$className": "RemoteEvent" },
+        "Captured": { "$className": "RemoteEvent" },
+        "MoveAction": { "$className": "RemoteEvent" },
+        "Results": { "$className": "RemoteEvent" },
+        "DataUpdated": { "$className": "RemoteEvent" },
+        "SetReady": { "$className": "RemoteEvent" },
+        "OpenMenu": { "$className": "RemoteEvent" },
+        "ShopPurchase": { "$className": "RemoteFunction" },
+        "ShopEquip": { "$className": "RemoteFunction" },
+        "GetProfile": { "$className": "RemoteFunction" }
+      }
+    },
+    "ServerScriptService": {
+      "$path": "src/server"
+    },
+    "StarterPlayer": {
+      "$properties": {
+        "CharacterWalkSpeed": 20,
+        "CharacterJumpPower": 50,
+        "CharacterUseJumpPower": true,
+        "EnableMouseLockOption": false
+      },
+      "StarterPlayerScripts": {
+        "$path": "src/client"
+      }
+    },
+    "Lighting": {
+      "$properties": {
+        "Brightness": 2.6,
+        "ClockTime": 15.2,
+        "GeographicLatitude": 30,
+        "Ambient": [0.36, 0.3, 0.26],
+        "OutdoorAmbient": [0.55, 0.5, 0.45],
+        "EnvironmentDiffuseScale": 0.6,
+        "EnvironmentSpecularScale": 0.4,
+        "GlobalShadows": true
+      }
+    },
+    "SoundService": {
+      "$properties": { "RespectFilteringEnabled": true }
+    }
+  }
+}
