@@ -72,7 +72,7 @@ StarterPlayerScripts
   MovementController                   dash, slide, jump pads
   AnimationController                  walk/run/idle/air/dash/slide/arrachage procéduraux (Motor6D.Transform)
   EffectsController                    balancement des queues, traînées, poussière, FOV, shake, queue qui vole, musique
-  UIController (+ Hud, LobbyMenu, Collection, Results, Screens, AdminPanel, Tutorial, MapVote, AssetGuard)
+  UIController (+ Hud, LobbyMenu, Collection, Results, Screens, AdminPanel, Tutorial, MapVote)
 ```
 
 ## Valeurs à ajuster (`Shared/Config`)
@@ -85,7 +85,7 @@ StarterPlayerScripts
 
 ## Images
 
-Le shop utilise un en-tête stud généré par le kit (plus de texture externe). `AssetGuard` vérifie au démarrage que chaque image de l'UI se charge : une image indisponible est remplacée par une icône de secours et son ID est écrit dans l'Output (`[AssetGuard] image indisponible : …`).
+Le shop utilise un en-tête stud généré par le kit (plus de texture externe).
 
 ## Reste à faire / à renseigner
 

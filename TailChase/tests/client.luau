@@ -13,7 +13,7 @@ B.RS:SetAttribute("MapCatalog", Http:JSONEncode({ { Id = "ville", Name = "Ville"
 	{ Id = "neon", Name = "Néon City", Description = "d", Icon = "Main/Lighting/Purple Lighting 1st Outline", Gradient = "magenta" },
 	{ Id = "plage", Name = "Plage", Description = "d", Icon = "Nature/Planet/Green Planet 1st Outline", Gradient = "amber" } }))
 local Icons0 = B.require(B.RS.CheckUIIcons)
-B.failAssets[Icons0.Get("Item/Chest/Chest 1st Outline")] = true
+_ = Icons0
 -- queue sur Bob (construite par le TailBuilder partagé)
 local TB = B.require(B.RS.Shared.TailBuilder)
 TB.Attach(other.Character, "tail_rainbow")
@@ -101,9 +101,6 @@ B.pump(0.5)
 print("vote fermé à la fin:", vote.Visible == false, "bouton HUD caché:", pg.HudTailChase.Minuteur.BoutonVote.Visible == false)
 me:SetAttribute("Ready", false)
 B.RS:SetAttribute("GameState", "Lobby")
--- AssetGuard (une image simulée indisponible)
-B.pump(2.5)
-print("AssetGuard : tuile Objets remplacée:", pg.MenuGauche.Panneau.Inventaire.Icone.Image ~= Icons0.Get("Item/Chest/Chest 1st Outline"))
 -- lobby : jouer
 pg.MenuGauche.Panneau.Jouer.Activated:Fire()
 -- manche

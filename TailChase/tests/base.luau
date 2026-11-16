@@ -127,7 +127,7 @@ local gm = I("Script"); gm.Name = "GameManager"; gm.Source = "server/GameManager
 local sps = I("StarterPlayerScripts")
 for _, n in { "MovementController", "AnimationController", "EffectsController" } do local s = I("LocalScript"); s.Name = n; s.Source = "client/" .. n .. ".client.luau"; s.Parent = sps end
 local uic = I("LocalScript"); uic.Name = "UIController"; uic.Source = "client/UIController/init.client.luau"; uic.Parent = sps
-for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens", "AdminPanel", "Tutorial", "MapVote", "AssetGuard" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
+for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens", "AdminPanel", "Tutorial", "MapVote" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
 
 B.RS, B.SSS, B.SPS, B.Players, B.Run, B.workspace, B.services = RS, SSS, sps, Players, Run, workspace, services
 

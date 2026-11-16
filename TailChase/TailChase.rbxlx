@@ -6870,7 +6870,7 @@ function TailService.Init()
 end
 
 return TailService
-]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX0000003F"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX0000003E"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000031"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX0000003E"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX0000003D"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000031"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
 	AnimationController - animations custom de TOUS les personnages (R15), calculées localement à chaque frame.
 
 	États (déduits de la vitesse répliquée, de l'état Humanoid et des Attributes Sliding / Dashing) :
@@ -7891,7 +7891,7 @@ ContextActionService:BindActionAtPriority("TC_Slide", onAction, false, Enum.Cont
 Signals.Connect("MobileAction", function(name: string)
 	if name == "Dash" then dash() elseif name == "Slide" then slide() end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000003D"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000003C"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
 	UIController - construit TOUTE l'interface avec le kit StudUI (une seule fois, ScreenGuis ResetOnSpawn = false)
 	et la branche aux Remotes / Attributes. Animations et sons via StudMotion.
 
@@ -7924,7 +7924,6 @@ local Screens = require(script.Screens)
 local AdminPanel = require(script.AdminPanel)
 local Tutorial = require(script.Tutorial)
 local MapVote = require(script.MapVote)
-local AssetGuard = require(script.AssetGuard)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -8108,11 +8107,6 @@ Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, 
 			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
 end)
-
--- vérifie que toutes les images de l'UI se chargent ; remplace celles qui sont indisponibles
-task.delay(2, function()
-	AssetGuard.Run(ctx, { playerGui })
-end)
 ]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX00000034"><Properties><string name="Name">AdminPanel</string><ProtectedString name="Source"><![CDATA[--[[
 	AdminPanel - fenêtre "Admin" (archétype D "upgrade / prestige" du kit : en-tête violet, 2 stud panels d'état,
 	boîte d'info, gros CTA en ligne, rangée de petites actions).
@@ -8218,59 +8212,7 @@ function AdminPanel.Build(ctx)
 end
 
 return AdminPanel
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000035"><Properties><string name="Name">AssetGuard</string><ProtectedString name="Source"><![CDATA[--[[
-	AssetGuard - vérifie que toutes les images de l'UI se chargent (ContentProvider:PreloadAsync).
-	Une image qui échoue (asset retiré / hors vente / modéré) est remplacée par une icône de secours du même kit,
-	et son ID est listé une seule fois dans l'Output : "[AssetGuard] image indisponible : rbxassetid://...".
-	Les textures décoratives (studs, soleil) qui échouent sont simplement masquées.
-]]
-
-local ContentProvider = game:GetService("ContentProvider")
-
-local AssetGuard = {}
-
-local DECOR = { Studs = true, Soleil = true, Reflets = true }
-
-function AssetGuard.Run(ctx, roots: { Instance })
-	local Icons = ctx.Icons
-	local fallbacks = {
-		Icons.Get("Main/Star/Golden Star 1st Outline"),
-		Icons.Get("Item/Gift/Red Gift 1st Outline"),
-	}
-	local byId: { [string]: { GuiObject } } = {}
-	for _, root in roots do
-		for _, d in root:GetDescendants() do
-			if (d:IsA("ImageLabel") or d:IsA("ImageButton")) and d.Image ~= "" then
-				byId[d.Image] = byId[d.Image] or {}
-				table.insert(byId[d.Image], d)
-			end
-		end
-	end
-	local ids = {}
-	for id in byId do table.insert(ids, id) end
-	task.spawn(function()
-		local failed = {}
-		pcall(function()
-			ContentProvider:PreloadAsync(ids, function(id, status)
-				if status == Enum.AssetFetchStatus.Failure then table.insert(failed, id) end
-			end)
-		end)
-		for _, id in failed do
-			warn("[AssetGuard] image indisponible : " .. id)
-			for _, img in byId[id] or {} do
-				if DECOR[img.Name] then
-					img.Visible = false
-				else
-					local fb = if id == fallbacks[1] then fallbacks[2] else fallbacks[1]
-					img.Image = fb
-				end
-			end
-		end
-	end)
-end
-
-return AssetGuard
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000036"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000035"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
 	Collection - fenêtres Shop et Inventaire (archétype "grille de slots + colonne d'onglets", cf. exemple 05 du kit).
 		Shop       : en-tête image rose + panier, tous les items, bouton Acheter (vert, prix) / Équiper (bleu) / Équipé (gris)
 		Inventaire : en-tête bleu + sac, uniquement les items possédés, bouton Équiper / Équipé
@@ -8429,7 +8371,7 @@ function Collection.Build(ctx, mode: string)
 end
 
 return Collection
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000037"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000036"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
 	Hud - HUD permanent construit avec le kit StudUI (offsets 1050x620 + une WindowScale par racine).
 		Haut centre  : minuteur (InsetBox + Pill d'état) + sous-titre (départ des chasseurs / joueurs prêts)
 		Haut gauche  : badge de rôle (bouton stud recoloré) + participants restants
@@ -8624,7 +8566,7 @@ function Hud.Build(ctx)
 end
 
 return Hud
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000038"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000037"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
 	LobbyMenu - menu gauche du lobby, géométrie exacte du "left menu" de référence (screenshot 01 / exemple 02) :
 		Frame 220x292 @ (0,14,0.5,0) ; bouton large 220x64 en haut, puis grille 2x2 de tuiles 106x106
 		(centres x 53/167, y 125/239), icône énorme qui déborde, gaps 8 px.
@@ -8708,7 +8650,7 @@ function LobbyMenu.Build(ctx)
 end
 
 return LobbyMenu
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000039"><Properties><string name="Name">MapVote</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000038"><Properties><string name="Name">MapVote</string><ProtectedString name="Source"><![CDATA[--[[
 	MapVote - fenêtre de vote de map pendant l'intermission (archétype C "calendrier de récompenses" du kit :
 	grandes tuiles stud panel colorées, soleil qui tourne derrière l'icône, nom en MAJUSCULES, bouton d'état).
 		VOTER (vert)  ->  VOTÉ ! (gris) sur la tuile choisie ; on peut changer d'avis.
@@ -8847,7 +8789,7 @@ function MapVote.Build(ctx)
 end
 
 return MapVote
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003A"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000039"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
 	Results - écran de résultats animé (fenêtre en-tête doré + trophée).
 		3 grandes cartes (slots à soleil) : SURVIE / QUEUES / PIÈCES (les pièces défilent avec un tic sonore)
 		détail des gains (InsetBox, valeurs surlignées #FFD23F)
@@ -8959,7 +8901,7 @@ function Results.Build(ctx)
 end
 
 return Results
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003B"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003A"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
 	Screens - notifications animées + écran de rôle / décompte de début de manche.
 	Notifications : Pills StudUI empilées en haut (pop Back-Out, 3 s, fondu), couleur selon le type.
 	Écran de rôle : StudPanel rouge (chasseur) ou bleu (participant), icône sticker inclinée qui déborde,
@@ -9131,7 +9073,7 @@ function Screens.BuildBanner(ctx)
 end
 
 return Screens
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003C"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003B"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--[[
 	Tutorial - tutoriel en 4 pages (fenêtre en-tête vert + livre).
 	Chaque page : grand stud panel coloré (soleil qui tourne + icône sticker inclinée qui déborde, titre extrudé,
 	description Montserrat Bold), une rangée "extra" (touches, gains...), points de pagination, RETOUR (gris) / SUIVANT (bleu)
@@ -9271,4 +9213,4 @@ function Tutorial.Build(ctx)
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX00000040"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000041"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX0000003F"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000040"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>

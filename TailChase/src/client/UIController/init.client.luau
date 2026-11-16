@@ -31,7 +31,6 @@ local Screens = require(script.Screens)
 local AdminPanel = require(script.AdminPanel)
 local Tutorial = require(script.Tutorial)
 local MapVote = require(script.MapVote)
-local AssetGuard = require(script.AssetGuard)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -214,9 +213,4 @@ Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, 
 		banner.Show("Queue prise !", item and item.Icon or "Exclusive/Trail/Red Trail 1st Outline",
 			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
-end)
-
--- vérifie que toutes les images de l'UI se chargent ; remplace celles qui sont indisponibles
-task.delay(2, function()
-	AssetGuard.Run(ctx, { playerGui })
 end)
