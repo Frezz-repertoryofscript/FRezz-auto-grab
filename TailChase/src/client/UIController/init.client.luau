@@ -30,6 +30,8 @@ local Results = require(script.Results)
 local Screens = require(script.Screens)
 local AdminPanel = require(script.AdminPanel)
 local Tutorial = require(script.Tutorial)
+local MapVote = require(script.MapVote)
+local AssetGuard = require(script.AssetGuard)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -91,8 +93,10 @@ ctx.OpenShop = function() if not inRoundForMe() then shop.Open() end end
 ctx.OpenInventory = function() if not inRoundForMe() then inventory.Open() end end
 ctx.OpenTutorial = function() if not inRoundForMe() then tutorial.Open() end end
 ctx.OpenAdmin = function() admin.Open() end
+local mapVote = MapVote.Build(ctx)
+ctx.OpenVote = function() if not inRoundForMe() then mapVote.Open() end end
 ctx.CloseAll = function()
-	for _, m in { shop, inventory, tutorial, admin } do m.Close() end
+	for _, m in { shop, inventory, tutorial, admin, mapVote } do m.Close() end
 end
 lobbyMenu = LobbyMenu.Build(ctx)
 if profile then lobbyMenu.SetProfile(profile) end
@@ -136,6 +140,7 @@ local function onState()
 		shop.Close()
 		inventory.Close()
 		tutorial.Close()
+		mapVote.Close()
 		task.delay(0.35, function() lobbyMenu.SetVisible(not inRoundForMe()) end)
 	end
 	if st == S.Lobby or st == S.Results then roleScreen.Hide() end
@@ -160,6 +165,8 @@ RunService.RenderStepped:Connect(function()
 		local release = ReplicatedStorage:GetAttribute("HuntersReleaseAt") or 0
 		if st == S.Round and now < release then
 			hud.SetSub(('Chasseurs lâchés dans <font color="#FF5A6A">%d</font>'):format(math.ceil(release - now)))
+		elseif st == S.Round or st == S.Countdown then
+			hud.SetSub(('Map : <font color="#FFD23F">%s</font>'):format(ReplicatedStorage:GetAttribute("MapName") or "?"))
 		elseif st == S.Intermission then
 			hud.SetSub(if player:GetAttribute("Ready") then "La manche commence bientôt !" else 'Clique sur <font color="#B4FF3C">JOUER</font> pour participer')
 		else
@@ -174,6 +181,8 @@ RunService.RenderStepped:Connect(function()
 	end
 	hud.UpdateDash(Signals.State.DashReadyAt, Signals.State.DashCooldown)
 	admin.Update()
+	mapVote.Update()
+	hud.SetVoteVisible(st == S.Intermission and mapVote.HasVote())
 end)
 
 -- =====================================================================
@@ -205,4 +214,9 @@ Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, 
 		banner.Show("Queue prise !", item and item.Icon or "Exclusive/Trail/Red Trail 1st Outline",
 			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
+end)
+
+-- vérifie que toutes les images de l'UI se chargent ; remplace celles qui sont indisponibles
+task.delay(2, function()
+	AssetGuard.Run(ctx, { playerGui })
 end)

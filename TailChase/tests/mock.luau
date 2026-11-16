@@ -54,13 +54,13 @@ V2mt.__type = "Vector2"
 M.Vector2 = { new = V2, zero = V2(0, 0), one = V2(1, 1) }
 
 local CFmt = {}
-local function CF(pos) return setmetatable({ Position = pos or V3(), LookVector = V3(0, 0, -1), UpVector = V3(0, 1, 0), RightVector = V3(1, 0, 0) }, CFmt) end
+local function CF(pos, rot) return setmetatable({ Position = pos or V3(), LookVector = V3(0, 0, -1), UpVector = V3(0, 1, 0), RightVector = V3(1, 0, 0), Rotated = rot or false }, CFmt) end
 CFmt.__mul = function(a, b)
-	if getmetatable(b) == CFmt then return CF(a.Position + b.Position) end
+	if getmetatable(b) == CFmt then return CF(a.Position + b.Position, a.Rotated or b.Rotated) end
 	return a.Position + b -- Vector3
 end
-CFmt.__add = function(a, b) return CF(a.Position + b) end
-CFmt.__sub = function(a, b) return CF(a.Position - b) end
+CFmt.__add = function(a, b) return CF(a.Position + b, a.Rotated) end
+CFmt.__sub = function(a, b) return CF(a.Position - b, a.Rotated) end
 CFmt.__index = function(c, k)
 	if k == "Lerp" then return function(a, b, t) return CF(a.Position:Lerp(b.Position, t)) end end
 	if k == "VectorToObjectSpace" or k == "VectorToWorldSpace" then return function(_, v) return v end end
@@ -72,9 +72,9 @@ end
 CFmt.__type = "CFrame"
 M.CFrame = {
 	new = function(x, y, z) if type(x) == "table" then return CF(x) end return CF(V3(x, y, z)) end,
-	Angles = function() return CF(V3()) end,
+	Angles = function(x, y, z) return CF(V3(), not ((x or 0) == 0 and (y or 0) == 0 and (z or 0) == 0)) end,
 	fromEulerAnglesXYZ = function() return CF(V3()) end,
-	lookAt = function(a, b) return CF(a) end,
+	lookAt = function(a, b) return CF(a, true) end,
 	identity = CF(V3()),
 }
 
@@ -234,5 +234,46 @@ M.typeof = function(v)
 	local mt = getmetatable(v)
 	if type(mt) == "table" and mt.__type then return mt.__type end
 	return type(v)
+end
+
+--- Détecteur de z-fighting : faces coplanaires de même orientation qui se recouvrent (parts non tournées, blocs).
+function M.zfight(root, limit)
+	local faces = {}
+	local function add(p)
+		local sz, pos = rawget(p, "__p").Size, rawget(p, "__p").CFrame
+		if not sz or not pos or pos.Rotated then return end
+		if rawget(p, "__p").Shape and rawget(p, "__p").Shape.Name ~= "Block" then return end
+		if rawget(p, "__p").Transparency == 1 then return end
+		local c = pos.Position
+		local h = { X = sz.X / 2, Y = sz.Y / 2, Z = sz.Z / 2 }
+		local ax = { "X", "Y", "Z" }
+		for i, a in ax do
+			local o1, o2 = ax[(i % 3) + 1], ax[((i + 1) % 3) + 1]
+			for _, sgn in { -1, 1 } do
+				-- faces du dessous ignorées : posées sur un sol, elles ne sont jamais visibles
+				if a == "Y" and sgn == -1 then continue end
+				local plane = c[a] + sgn * h[a]
+				local key = a .. sgn .. ":" .. string.format("%.2f", plane)
+				faces[key] = faces[key] or {}
+				table.insert(faces[key], { p = p, min1 = c[o1] - h[o1], max1 = c[o1] + h[o1], min2 = c[o2] - h[o2], max2 = c[o2] + h[o2] })
+			end
+		end
+	end
+	for _, d in root:GetDescendants() do if d.ClassName == "Part" or d.ClassName == "SpawnLocation" then add(d) end end
+	local out = {}
+	for key, list in faces do
+		for i = 1, #list do
+			for j = i + 1, #list do
+				local a, b = list[i], list[j]
+				local w = math.min(a.max1, b.max1) - math.max(a.min1, b.min1)
+				local l = math.min(a.max2, b.max2) - math.max(a.min2, b.min2)
+				if w > 0.05 and l > 0.05 then
+					table.insert(out, ("%s  %s(%s) x %s(%s)  %.1fx%.1f"):format(key, a.p.Name, a.p.Parent and a.p.Parent.Name or "?", b.p.Name, b.p.Parent and b.p.Parent.Name or "?", w, l))
+				end
+			end
+		end
+	end
+	table.sort(out)
+	return out
 end
 return M

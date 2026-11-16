@@ -64,13 +64,15 @@ RunService.RenderStepped:Connect(function()
 		local fwd = math.clamp(-localVel.Z / 24, -0.5, 1.6)   -- vitesse vers l'avant -> la queue se soulève en arrière
 		local side = math.clamp(localVel.X / 24, -1, 1)
 		local fall = math.clamp(vel.Y / 40, -1, 1)
+		-- en slide le torse bascule en arrière : on relève la queue pour qu'elle traîne derrière au lieu de rentrer dans le sol
+		local slideLift = if char:GetAttribute("Sliding") == true then -1.9 else 0
 		for i, j in d.Joints do
 			local base = j:GetAttribute("BaseC0")
 			if typeof(base) == "CFrame" and j.Parent then
 				local w = i / #d.Joints
 				local wave = math.sin(t * (5 + fwd * 5) - i * 0.7 + d.Seed) * (0.12 + 0.18 * fwd) * (0.4 + w)
 				local sway = math.sin(t * 1.9 + i * 0.5 + d.Seed) * 0.12 * (0.5 + w)
-				local lift = -(0.28 * fwd + 0.15 * fall) * (if i == 1 then 1.4 else 0.55)
+				local lift = -(0.28 * fwd + 0.15 * fall) * (if i == 1 then 1.4 else 0.55) + (if i == 1 then slideLift else slideLift * 0.04)
 				j.C0 = base * CFrame.Angles(lift + wave, 0, sway - side * 0.25 * w)
 			end
 		end

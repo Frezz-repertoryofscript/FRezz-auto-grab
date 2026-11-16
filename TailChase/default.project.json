@@ -19,6 +19,7 @@
         "SetReady": { "$className": "RemoteEvent" },
         "OpenMenu": { "$className": "RemoteEvent" },
         "TutorialDone": { "$className": "RemoteEvent" },
+        "MapVote": { "$className": "RemoteEvent" },
         "AdminCommand": { "$className": "RemoteFunction" },
         "ShopPurchase": { "$className": "RemoteFunction" },
         "ShopEquip": { "$className": "RemoteFunction" },

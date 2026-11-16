@@ -69,6 +69,15 @@ SG.GetCoreGuiEnabled = function() return true end
 SG.SetCoreGuiEnabled = function() end
 SG.SetCore = function() end
 services.Debris.AddItem = function() end
+local Http = svc("HttpService")
+local jsonStore = {}
+Http.JSONEncode = function(_, t) table.insert(jsonStore, t); return "json#" .. #jsonStore end
+Http.JSONDecode = function(_, str) return table.clone(jsonStore[tonumber(str:match("%d+"))]) end
+local CP = svc("ContentProvider")
+B.failAssets = {}
+CP.PreloadAsync = function(_, ids, cb)
+	for _, id in ids do cb(id, if B.failAssets[id] then M.Enum.AssetFetchStatus.Failure else M.Enum.AssetFetchStatus.Success) end
+end
 Players.GetPlayers = function() local out = {}; for _, c in Players:GetChildren() do if c.ClassName == "Player" then table.insert(out, c) end end return out end
 Players.GetPlayerFromCharacter = function(_, ch) for _, p in Players:GetPlayers() do if p.Character == ch then return p end end return nil end
 Players.GetNameFromUserIdAsync = function() return "X" end
@@ -107,15 +116,18 @@ module(RS, "CheckUIIcons", "shared/StudKit/CheckUIIcons.luau")
 local shared = folder(RS, "Shared")
 for _, n in { "Config", "Cosmetics", "TailBuilder", "Audio", "ClientSignals" } do module(shared, n, "shared/Shared/" .. n .. ".luau") end
 local rem = folder(RS, "Remotes")
-for _, n in { "RoundState", "Notify", "RoleAssigned", "Captured", "MoveAction", "Results", "DataUpdated", "SetReady", "OpenMenu", "TutorialDone" } do local r = I("RemoteEvent"); r.Name = n; r.Parent = rem end
+for _, n in { "RoundState", "Notify", "RoleAssigned", "Captured", "MoveAction", "Results", "DataUpdated", "SetReady", "OpenMenu", "TutorialDone", "MapVote" } do local r = I("RemoteEvent"); r.Name = n; r.Parent = rem end
 for _, n in { "ShopPurchase", "ShopEquip", "GetProfile", "AdminCommand" } do local r = I("RemoteFunction"); r.Name = n; r.Parent = rem end
-for _, n in { "MapBuilder", "DataService", "ShopService", "TailService", "RoleService", "CoinService", "MovementService", "AdminService" } do module(SSS, n, "server/" .. n .. ".luau") end
+local mb = module(SSS, "MapBuilder", "server/MapBuilder/init.luau")
+local mapsF = folder(mb, "Maps")
+for _, n in { "Plage", "Chateau", "Neon", "Neige", "Fete" } do module(mapsF, n, "server/MapBuilder/Maps/" .. n .. ".luau") end
+for _, n in { "DataService", "ShopService", "TailService", "RoleService", "CoinService", "MovementService", "AdminService" } do module(SSS, n, "server/" .. n .. ".luau") end
 local gm = I("Script"); gm.Name = "GameManager"; gm.Source = "server/GameManager.server.luau"; gm.Parent = SSS
 
 local sps = I("StarterPlayerScripts")
 for _, n in { "MovementController", "AnimationController", "EffectsController" } do local s = I("LocalScript"); s.Name = n; s.Source = "client/" .. n .. ".client.luau"; s.Parent = sps end
 local uic = I("LocalScript"); uic.Name = "UIController"; uic.Source = "client/UIController/init.client.luau"; uic.Parent = sps
-for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens", "AdminPanel", "Tutorial" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
+for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens", "AdminPanel", "Tutorial", "MapVote", "AssetGuard" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
 
 B.RS, B.SSS, B.SPS, B.Players, B.Run, B.workspace, B.services = RS, SSS, sps, Players, Run, workspace, services
 

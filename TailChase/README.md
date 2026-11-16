@@ -26,6 +26,17 @@ La map, le lobby, l'éclairage et les groupes de collision sont générés au d�
 
 Commandes : **Dash** Q / Shift / manette X / bouton tactile · **Slide** C / Ctrl / manette Y / bouton tactile. Les tunnels de slide sont signalés par un néon cyan et un panneau « SLIDE [C] ».
 
+## Maps et vote
+
+6 maps générées par code (`server/MapBuilder` + `server/MapBuilder/Maps/*.luau`) : **Ville**, **Plage**, **Château**, **Néon City** (de nuit), **Village alpin** (lac gelé glissant), **Fête foraine**.
+Pendant l'intermission, 3 maps tirées au hasard sont proposées au vote (fenêtre automatique pour les joueurs prêts, bouton **VOTE** sous le chrono). La gagnante (égalité : tirage) est construite juste avant la manche ; l'ancienne est détruite.
+Ajouter une map : copier un module de `Maps/`, changer `Id`/`Name`/`Order` et la fonction `Build(H, map, spawns)` (briques dans `MapBuilder.H`). `tests/run.sh` vérifie chaque map (construction, spawns, **z-fighting**).
+
+## Animations
+
+Idle, marche, course, saut, chute, réception, slide, dash, arrachage de queue : animations custom procédurales (`AnimationController`), sans asset à uploader.
+Pour utiliser tes propres animations Roblox, mets leurs IDs dans `Config.Animations` (l'état correspondant les joue, répliquées à tous).
+
 ## Panel admin
 
 Tuile violette « Admin » du menu de gauche (visible en Studio pour tous ; en ligne pour le créateur du jeu, le rang ≥ `Config.AdminGroupRank` du groupe propriétaire et les UserIds de `Config.Admins`). Toutes les commandes sont vérifiées par le serveur (`AdminService`).
@@ -55,12 +66,13 @@ ReplicatedStorage
   Remotes/                             RemoteEvents et RemoteFunctions (déclarés dans default.project.json)
 ServerScriptService
   GameManager (Script)                 boucle Lobby → Intermission → Countdown → Round → Results, captures validées
-  RoleService, TailService, CoinService, DataService, ShopService, MovementService, AdminService, MapBuilder
+  RoleService, TailService, CoinService, DataService, ShopService, MovementService, AdminService
+  MapBuilder (+ Maps/Plage, Chateau, Neon, Neige, Fete)
 StarterPlayerScripts
   MovementController                   dash, slide, jump pads
   AnimationController                  walk/run/idle/air/dash/slide/arrachage procéduraux (Motor6D.Transform)
   EffectsController                    balancement des queues, traînées, poussière, FOV, shake, queue qui vole, musique
-  UIController (+ Hud, LobbyMenu, Collection, Results, Screens, AdminPanel, Tutorial)
+  UIController (+ Hud, LobbyMenu, Collection, Results, Screens, AdminPanel, Tutorial, MapVote, AssetGuard)
 ```
 
 ## Valeurs à ajuster (`Shared/Config`)
@@ -70,6 +82,10 @@ StarterPlayerScripts
 - Mouvement : `RunnerWalkSpeed` 20, `HunterWalkSpeed` 21.5, `DashSpeed` 78, `DashDuration` 0.18, `DashCooldown` 4, `DashFovBoost` 14, `SlideBoost` 1.55, `SlideDuration` 0.85, `SlideCooldown` 1.1, `JumpPadPower`, `KillPlaneY` -40
 - Économie : `Coins.SurvivalSecondsPerCoin` 5, `PerTail` 10, `Participation` 25, `LastSurvivor` 50, `StartingCoins` 100
 - Prix et raretés : `Shared/Cosmetics`
+
+## Images
+
+Le shop utilise un en-tête stud généré par le kit (plus de texture externe). `AssetGuard` vérifie au démarrage que chaque image de l'UI se charge : une image indisponible est remplacée par une icône de secours et son ID est écrit dans l'Output (`[AssetGuard] image indisponible : …`).
 
 ## Reste à faire / à renseigner
 

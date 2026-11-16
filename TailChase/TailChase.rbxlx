@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="ReplicatedStorage" referent="RBX0000001F"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">StudUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="ReplicatedStorage" referent="RBX00000020"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">StudUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 --[[
 	StudUI - Stud UI Clean Roblox kit for Roblox (ModuleScript)
 	=========================================================
@@ -3742,6 +3742,7 @@ Config.HunterReleaseDelay = 3    -- avance des participants : les chasseurs part
 Config.RoundTime = 180           -- 3 minutes
 Config.ResultsTime = 10
 Config.ExtraHunterThreshold = 10 -- au-delà de ce nombre de joueurs : 2 chasseurs
+Config.VoteOptions = 3          -- nombre de maps proposées au vote pendant l'intermission
 
 -- =====================================================================
 -- ADMIN (panel « Admin » du lobby)
@@ -3857,6 +3858,23 @@ Config.HunterColor = Color3.fromRGB(255, 30, 50)
 Config.RunnerColor = Color3.fromRGB(60, 170, 255)
 Config.TailSegments = 6
 Config.TailSegmentLength = 0.75
+
+-- =====================================================================
+-- ANIMATIONS
+-- Par défaut TOUT est procédural (AnimationController) : aucune animation à uploader.
+-- Si tu crées tes propres animations (Animation Editor -> Publish), colle leur ID ici : l'état correspondant
+-- jouera alors ton animation (répliquée à tous) et le procédural ne s'appliquera plus à cet état.
+-- =====================================================================
+Config.Animations = {
+	Idle = "",  -- ex : "rbxassetid://123456789"
+	Walk = "",
+	Run = "",
+	Jump = "",
+	Fall = "",
+	Slide = "",
+	Dash = "",
+}
+Config.WalkRunThreshold = 14 -- au-dessus : cycle "course", en dessous : "marche"
 
 Config.States = {
 	Lobby = "Lobby",
@@ -4108,7 +4126,7 @@ function TailBuilder.Remove(character: Model)
 end
 
 return TailBuilder
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX0000001E"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX00000010"><Properties><string name="Name">RoundState</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000011"><Properties><string name="Name">Notify</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000012"><Properties><string name="Name">RoleAssigned</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000013"><Properties><string name="Name">Captured</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000014"><Properties><string name="Name">MoveAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000015"><Properties><string name="Name">Results</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000016"><Properties><string name="Name">DataUpdated</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000017"><Properties><string name="Name">SetReady</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000018"><Properties><string name="Name">OpenMenu</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000019"><Properties><string name="Name">TutorialDone</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001A"><Properties><string name="Name">AdminCommand</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001B"><Properties><string name="Name">ShopPurchase</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001C"><Properties><string name="Name">ShopEquip</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001D"><Properties><string name="Name">GetProfile</string></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000029"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX00000020"><Properties><string name="Name">AdminService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX0000001F"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX00000010"><Properties><string name="Name">RoundState</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000011"><Properties><string name="Name">Notify</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000012"><Properties><string name="Name">RoleAssigned</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000013"><Properties><string name="Name">Captured</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000014"><Properties><string name="Name">MoveAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000015"><Properties><string name="Name">Results</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000016"><Properties><string name="Name">DataUpdated</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000017"><Properties><string name="Name">SetReady</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000018"><Properties><string name="Name">OpenMenu</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000019"><Properties><string name="Name">TutorialDone</string></Properties></Item><Item class="RemoteEvent" referent="RBX0000001A"><Properties><string name="Name">MapVote</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001B"><Properties><string name="Name">AdminCommand</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001C"><Properties><string name="Name">ShopPurchase</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001D"><Properties><string name="Name">ShopEquip</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001E"><Properties><string name="Name">GetProfile</string></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000030"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX00000021"><Properties><string name="Name">AdminService</string><ProtectedString name="Source"><![CDATA[--[[
 	AdminService - commandes du panel admin (RemoteFunction Remotes.AdminCommand), vérifiées côté serveur.
 	Qui est admin : tout le monde en Studio ; en ligne, le créateur du jeu (ou rang >= Config.AdminGroupRank si le jeu
 	appartient à un groupe) + Config.Admins. Player Attribute "IsAdmin" -> le client affiche la tuile Admin.
@@ -4201,7 +4219,7 @@ function AdminService.Init()
 end
 
 return AdminService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000021"><Properties><string name="Name">CoinService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000022"><Properties><string name="Name">CoinService</string><ProtectedString name="Source"><![CDATA[--[[
 	CoinService - calcule et verse les pièces de fin de manche.
 		survie        : 1 pièce / Config.Coins.SurvivalSecondsPerCoin secondes
 		queues prises : Config.Coins.PerTail par queue
@@ -4245,7 +4263,7 @@ function CoinService.Reward(player: Player, survivalSeconds: number, tails: numb
 end
 
 return CoinService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000022"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000023"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[--[[
 	DataService - sauvegarde DataStore des profils (pièces, achats, équipements, stats).
 	  * chargement / sauvegarde avec pcall + retries + backoff
 	  * sauvegarde auto toutes les Config.Data.AutoSaveInterval s, à la sortie du joueur et à la fermeture (BindToClose)
@@ -4541,7 +4559,7 @@ end
 DataService.RefreshLeaderboard = refreshLeaderboard
 
 return DataService
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000023"><Properties><string name="Name">GameManager</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000024"><Properties><string name="Name">GameManager</string><ProtectedString name="Source"><![CDATA[--[[
 	GameManager - point d'entrée serveur de TAIL CHASE.
 	Construit la map, initialise les services et fait tourner la boucle :
 		Lobby -> Intermission (20 s, min joueurs prêts) -> Countdown (5 s, figés) -> Round (3 min) -> Results (10 s) -> Lobby
@@ -4553,6 +4571,7 @@ return DataService
 ]]
 
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -4583,6 +4602,7 @@ MovementService.Init()
 AdminService.Init()
 
 ReplicatedStorage:SetAttribute("MinPlayers", MIN_PLAYERS)
+ReplicatedStorage:SetAttribute("MapCatalog", HttpService:JSONEncode(MapBuilder.Catalog()))
 
 local function now(): number
 	return workspace:GetServerTimeNow()
@@ -4628,6 +4648,68 @@ local function randomMapSpawn(): CFrame
 	local s = spawns[math.random(1, #spawns)]
 	return s.CFrame + Vector3.new(0, 3.5, 0)
 end
+
+-- =====================================================================
+-- VOTE DE MAP (pendant l'intermission)
+-- Attributes : VoteOptions (JSON de N ids), Votes_<id> (compte). Remote MapVote(id) validé ici.
+-- =====================================================================
+local votes: { [Player]: string } = {}
+local voteOptions: { string } = {}
+
+local function clearVote()
+	for _, id in voteOptions do ReplicatedStorage:SetAttribute("Votes_" .. id, nil) end
+	table.clear(votes)
+	table.clear(voteOptions)
+	ReplicatedStorage:SetAttribute("VoteOptions", nil)
+end
+
+local function startVote()
+	clearVote()
+	local pool = {}
+	for _, m in MapBuilder.Maps do table.insert(pool, m.Id) end
+	shuffle(pool)
+	for i = 1, math.min(Config.VoteOptions, #pool) do
+		table.insert(voteOptions, pool[i])
+		ReplicatedStorage:SetAttribute("Votes_" .. pool[i], 0)
+	end
+	ReplicatedStorage:SetAttribute("VoteOptions", HttpService:JSONEncode(voteOptions))
+end
+
+local function recount()
+	local counts = {}
+	for _, id in voteOptions do counts[id] = 0 end
+	for p, id in votes do
+		if p.Parent and counts[id] then counts[id] += 1 end
+	end
+	for id, n in counts do ReplicatedStorage:SetAttribute("Votes_" .. id, n) end
+	return counts
+end
+
+--- Termine le vote et retourne la map gagnante (égalité : tirage au sort ; pas de vote : map au hasard).
+local function finishVote(): string
+	local pool = if #voteOptions > 0 then table.clone(voteOptions) else {}
+	if #pool == 0 then
+		for _, m in MapBuilder.Maps do table.insert(pool, m.Id) end
+	end
+	local counts = recount()
+	local best, bestN = {}, -1
+	for _, id in pool do
+		local n = counts[id] or 0
+		if n > bestN then best, bestN = { id }, n elseif n == bestN then table.insert(best, id) end
+	end
+	clearVote()
+	return best[math.random(1, #best)]
+end
+
+Remotes.MapVote.OnServerEvent:Connect(function(player: Player, id: any)
+	if typeof(id) ~= "string" or not table.find(voteOptions, id) then return end
+	if ReplicatedStorage:GetAttribute("GameState") ~= S.Intermission then return end
+	votes[player] = id
+	recount()
+end)
+Players.PlayerRemoving:Connect(function(p)
+	if votes[p] then votes[p] = nil; recount() end
+end)
 
 -- =====================================================================
 -- MANCHE
@@ -4771,7 +4853,8 @@ local function endRound()
 		Remotes.Results:FireClient(p, { Rows = rows, Mine = m, Headline = headline })
 	end
 
-	-- retour au lobby
+	-- retour au lobby (éclairage de jour, même après une map de nuit)
+	game:GetService("Lighting").ClockTime = 15.2
 	for p in r.Players do
 		if p.Parent then
 			RoleService.SetFrozen(p, false)
@@ -4788,13 +4871,17 @@ local function endRound()
 	task.wait(Config.ResultsTime)
 end
 
-local function runRound()
+local function runRound(mapId: string)
 	local forced = Control.ForceStart
 	Control.ForceStart = false
 	Control.ForceEnd = false
 	local participants = shuffle(readyPlayers())
 	-- lancement admin : on accepte une manche solo (sans chasseur) pour tester
 	if #participants < (if forced then 1 else MIN_PLAYERS) then return end
+
+	-- construit la map gagnante du vote (détruit l'ancienne)
+	local def = MapBuilder.LoadMap(mapId)
+	notifyAll(("Map : %s !"):format(def.Name), "go")
 
 	local hunterCount = if #participants > Config.ExtraHunterThreshold then 2 else 1
 	if #participants < 2 then hunterCount = 0 end -- (lancement admin en solo : manche sans chasseur)
@@ -4954,6 +5041,7 @@ while true do
 
 	local cancelled = false
 	if not Control.ForceStart then
+		startVote()
 		setState(S.Intermission, Config.IntermissionTime)
 		local t0 = os.clock()
 		while os.clock() - t0 < Config.IntermissionTime and not Control.ForceStart do
@@ -4967,9 +5055,11 @@ while true do
 		end
 	end
 	if cancelled then
+		clearVote()
 		notifyAll("Pas assez de joueurs, retour à l'attente.", "info")
 	else
-		local ok, err = pcall(runRound)
+		local mapId = finishVote()
+		local ok, err = pcall(runRound, mapId)
 		if not ok then
 			warn("[GameManager] erreur pendant la manche :", err)
 			-- sécurité : on remet tout le monde au lobby
@@ -4982,13 +5072,15 @@ while true do
 		end
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000024"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[--[[
-	MapBuilder - génère la map studded (≈300x300) et le lobby au démarrage du serveur.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002B"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[--[[
+	MapBuilder - génère les maps studded (vote : Ville + les modules de server/Maps) et le lobby.
+	Une seule map existe à la fois dans Workspace.Map ; LoadMap(id) détruit l'ancienne et construit la gagnante du vote.
+	Le lobby est construit une fois (un modèle Workspace.Lobby déjà présent est réutilisé tel quel).
 
-	Pourquoi généré par code : le projet est livré en fichiers Rojo (pas de .rbxl). Si Workspace contient déjà un
-	modèle "Map" / "Lobby" (par ex. après l'avoir sauvegardé depuis Studio et retouché à la main), il est réutilisé tel quel.
+	Règle anti z-fighting (vérifiée par tests/run.sh) : deux faces de même orientation ne doivent jamais être
+	coplanaires ET se recouvrir. Les rampes/ponts (slab) sont surélevés de 0.06 pour ne jamais affleurer leur support.
 
-	Repères (Y = 0 = sol) :
+	Ville - repères (Y = 0 = sol) :
 		Place centrale  : centre, anneau surélevé (passerelle) à Y=14, fontaine, rampes, jump pads
 		Village (NE)    : 3x3 maisons à toits plats (Y=14) reliés par planches, ruelles avec tunnels de slide
 		Toits (SE)      : tours de hauteurs variées, passerelles, jump pads, petit parcours de saut flottant
@@ -5113,7 +5205,8 @@ local function slab(parent, a: Vector3, b: Vector3, width: number, color: Color3
 	local len = (b - a).Magnitude
 	local mid = (a + b) / 2
 	local cf = CFrame.lookAt(mid, b)
-	cf = cf * CF(0, -t / 2, 0)
+	-- +0.06 : le dessus ne coïncide jamais avec le sol / toit sur lequel il s'appuie (anti z-fighting)
+	cf = cf * CF(0, -t / 2 + 0.06, 0)
 	return part(parent, V3(width, t, len), cf, color, { Name = name or "Rampe", Sides = false })
 end
 
@@ -5178,7 +5271,7 @@ local function bench(parent, x, z, rotY, y0)
 	local y = y0 or 0
 	local base = CF(x, y, z) * CFrame.Angles(0, math.rad(rotY or 0), 0)
 	part(parent, V3(5, 0.5, 1.6), base * CF(0, 1.4, 0), RGB(200, 120, 60), { Name = "Banc" })
-	part(parent, V3(5, 1.4, 0.4), base * CF(0, 2.3, 0.7), RGB(200, 120, 60), { Name = "Dossier" })
+	part(parent, V3(4.8, 1.4, 0.4), base * CF(0, 2.3, 0.7), RGB(200, 120, 60), { Name = "Dossier" })
 	part(parent, V3(0.5, 1.2, 1.4), base * CF(-2.1, 0.6, 0), RGB(50, 50, 60), { Name = "Pied", NoStuds = true })
 	part(parent, V3(0.5, 1.2, 1.4), base * CF(2.1, 0.6, 0), RGB(50, 50, 60), { Name = "Pied", NoStuds = true })
 end
@@ -5215,7 +5308,7 @@ local function slideBlock(parent, center: Vector3, length: number, width: number
 		{ Name = "Ombre", CanCollide = false, NoStuds = true, CastShadow = false })
 	for _, s in { -1, 1 } do
 		local endOff = if alongX then V3(s * (length / 2 + 0.05), 0, 0) else V3(0, 0, s * (length / 2 + 0.05))
-		neonStrip(m, sz(0.2, TUNNEL_W + 0.6, 0.4), CF(V3(center.X, y + TUNNEL_H + 0.2, center.Z) + endOff), PAL.Neon1)
+		neonStrip(m, sz(0.2, TUNNEL_W + 0.6, 0.3), CF(V3(center.X, y + TUNNEL_H + 0.25, center.Z) + endOff), PAL.Neon1)
 		-- panneau "SLIDE" au dessus de l'entrée
 		local sign = part(m, sz(0.3, 4.5, 1.6), CF(V3(center.X, y + math.min(height - 0.9, TUNNEL_H + 1.4), center.Z) + endOff * 1.01), RGB(20, 24, 32),
 			{ Name = "PanneauSlide", NoStuds = true, CanCollide = false })
@@ -5261,7 +5354,7 @@ local function buildGround(map)
 	part(g, V3(300, 4, 300), CF(0, -2, 0), PAL.Road, { Name = "Route", Sides = false })
 	-- marquages de route
 	for i = -3, 3 do
-		if i ~= 0 then
+		if i ~= 0 and math.abs(i) ~= 2 then
 			part(g, V3(6, 0.1, 1), CF(i * 20, 0.05, 43), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
 			part(g, V3(6, 0.1, 1), CF(i * 20, 0.05, -43), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
 			part(g, V3(1, 0.1, 6), CF(43, 0.05, i * 20), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
@@ -5270,7 +5363,7 @@ local function buildGround(map)
 	end
 	-- dalles de zones (léger trottoir de 0.4)
 	part(g, V3(70, 0.4, 70), CF(0, 0.2, 0), PAL.Plaza, { Name = "Place" })
-	part(g, V3(30, 0.42, 30), CF(0, 0.21, 0), PAL.PlazaAlt, { Name = "PlaceCentre" })
+	part(g, V3(30, 0.1, 30), CF(0, 0.45, 0), PAL.PlazaAlt, { Name = "PlaceCentre", Sides = false })
 	part(g, V3(96, 0.4, 96), CF(99, 0.2, -99), RGB(200, 230, 150), { Name = "SolVillage" })
 	part(g, V3(96, 0.4, 96), CF(99, 0.2, 99), RGB(150, 160, 190), { Name = "SolToits" })
 	part(g, V3(96, 0.4, 96), CF(-99, 0.2, 99), PAL.Concrete, { Name = "SolIndustriel" })
@@ -5278,12 +5371,13 @@ local function buildGround(map)
 
 	-- murs d'enceinte (hauts, colorés, néon en haut)
 	local walls = folder(map, "Enceinte")
-	for _, w in {
+	for i, w in {
 		{ V3(308, 40, 4), CF(0, 20, -152) }, { V3(308, 40, 4), CF(0, 20, 152) },
 		{ V3(4, 40, 300), CF(-152, 20, 0) }, { V3(4, 40, 300), CF(152, 20, 0) },
 	} do
 		part(walls, w[1], w[2], PAL.Wall, { Name = "Mur" })
-		neonStrip(walls, V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2), w[2] * CF(0, 20.4, 0), PAL.Neon2)
+		local ns = if i <= 2 then V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2) else V3(w[1].X + 0.2, 0.7, w[1].Z - 0.6)
+		neonStrip(walls, ns, w[2] * CF(0, 20.4, 0), PAL.Neon2)
 	end
 end
 
@@ -5318,8 +5412,8 @@ local function buildPlaza(map, spawns)
 	part(ring, V3(2 * R + Wd, 1, Wd), CF(0, H - 0.5, R), PAL.Ring, { Name = "AnneauS", Sides = false })
 	part(ring, V3(Wd, 1, 2 * R - Wd), CF(R, H - 0.5, 0), PAL.Ring, { Name = "AnneauE", Sides = false })
 	part(ring, V3(Wd, 1, 2 * R - Wd), CF(-R, H - 0.5, 0), PAL.Ring, { Name = "AnneauO", Sides = false })
-	neonStrip(ring, V3(2 * R + Wd, 0.3, 0.3), CF(0, H - 1.1, -R - Wd / 2), PAL.Neon1)
-	neonStrip(ring, V3(2 * R + Wd, 0.3, 0.3), CF(0, H - 1.1, R + Wd / 2), PAL.Neon1)
+	neonStrip(ring, V3(2 * R + Wd - 0.6, 0.3, 0.3), CF(0, H - 1.1, -R - Wd / 2), PAL.Neon1)
+	neonStrip(ring, V3(2 * R + Wd - 0.6, 0.3, 0.3), CF(0, H - 1.1, R + Wd / 2), PAL.Neon1)
 	for _, sx in { -1, 1 } do
 		for _, sz in { -1, 1 } do
 			pillar(ring, sx * R, sz * R, H - 1, 1.1, PAL.White)
@@ -5401,7 +5495,7 @@ local function buildVillage(map, spawns)
 			block(house, x, zc, S + 1, 1, S + 1, roofCol, H - 0.6, { Name = "Toit" })
 			-- porte + fenêtres décoratives (sans collision)
 			for _, f in { { 0, S / 2 + 0.1 }, { 0, -S / 2 - 0.1 } } do
-				part(house, V3(4, 6, 0.3), CF(x + f[1], 3.4, zc + f[2]), RGB(120, 70, 40), { Name = "Porte", CanCollide = false, NoStuds = true })
+				part(house, V3(4, 5.9, 0.3), CF(x + 5, 3.45, zc + f[2]), RGB(120, 70, 40), { Name = "Porte", CanCollide = false, NoStuds = true })
 				for _, wx in { -7, 7 } do
 					part(house, V3(3.5, 3, 0.3), CF(x + wx, 9, zc + f[2]), RGB(170, 230, 255),
 						{ Name = "Fenetre", CanCollide = false, Material = Enum.Material.Glass, NoStuds = true, Transparency = 0.1 })
@@ -5413,10 +5507,10 @@ local function buildVillage(map, spawns)
 			end
 			-- planches entre toits (certaines volontairement absentes : saut de 8 studs, faisable avec dash)
 			if ix < 3 and not (ix == 2 and iz == 2) then
-				slab(z, V3(x + S / 2, H + 0.4, zc), V3(x + 30 - S / 2, H + 0.4, zc), 4, PAL.Bridge, 0.8, "Planche")
+				slab(z, V3(x + (S + 1) / 2, H + 0.4, zc), V3(x + 30 - (S + 1) / 2, H + 0.4, zc), 4, PAL.Bridge, 0.8, "Planche")
 			end
 			if iz < 3 and not (ix == 1 and iz == 2) then
-				slab(z, V3(x, H + 0.4, zc - S / 2), V3(x, H + 0.4, zc - 30 + S / 2), 4, PAL.Bridge, 0.8, "Planche")
+				slab(z, V3(x, H + 0.4, zc - (S + 1) / 2), V3(x, H + 0.4, zc - 30 + (S + 1) / 2), 4, PAL.Bridge, 0.8, "Planche")
 			end
 		end
 	end
@@ -5454,7 +5548,7 @@ local function buildRooftops(map, spawns)
 		local m = Instance.new("Model")
 		m.Name = "Tour" .. i
 		m.Parent = z
-		block(m, t[1], t[2], S, t[3] - 0.4, S, col, 0.4, { Name = "Tour" })
+		block(m, t[1], t[2], S, t[3] - 1, S, col, 0.4, { Name = "Tour" })
 		block(m, t[1], t[2], S + 0.8, 0.6, S + 0.8, RGB(50, 54, 70), t[3] - 0.6, { Name = "Rebord" })
 		-- néons verticaux aux coins
 		for _, c in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
@@ -5564,7 +5658,7 @@ local function buildGardens(map, spawns)
 	-- haies (h = 6 : presque trop hautes pour sauter -> on les contourne)
 	local hedges = {
 		-- { x, z, sx, sz }
-		{ -120, -90, 40, 3 }, { -76, -90, 20, 3 },             -- rangée 1 (trou en -95)
+		{ -121.5, -90, 37, 3 }, { -76, -90, 20, 3 },           -- rangée 1 (tunnel de slide en -98)
 		{ -88, -115, 44, 3 }, { -138, -115, 14, 3 },           -- rangée 2 (trou en -125)
 		{ -108, -132, 3, 26 },                                 -- verticale
 		{ -76, -132, 3, 20 },
@@ -5612,9 +5706,9 @@ function MapBuilder.BuildLobby(): Model
 	-- île
 	part(lobby, V3(120, 4, 92), at(0, -2, 0), RGB(120, 210, 80), { Name = "Sol" })
 	part(lobby, V3(124, 6, 96), at(0, -6.9, 0), RGB(150, 100, 60), { Name = "Terre", Sides = true })
-	part(lobby, V3(16, 0.3, 92), at(0, 0.15, 0), RGB(242, 214, 160), { Name = "Allee", Sides = false })
+	part(lobby, V3(16, 0.3, 90), at(0, 0.15, 0), RGB(242, 214, 160), { Name = "Allee", Sides = false })
 	-- clôtures
-	for _, f in { { V3(120, 2.5, 1), at(0, 1.25, -45.5) }, { V3(120, 2.5, 1), at(0, 1.25, 45.5) }, { V3(1, 2.5, 92), at(-59.5, 1.25, 0) }, { V3(1, 2.5, 92), at(59.5, 1.25, 0) } } do
+	for _, f in { { V3(120, 2.5, 1), at(0, 1.25, -45.5) }, { V3(120, 2.5, 1), at(0, 1.25, 45.5) }, { V3(1, 2.5, 90), at(-59.5, 1.25, 0) }, { V3(1, 2.5, 90), at(59.5, 1.25, 0) } } do
 		part(lobby, f[1], f[2], PAL.White, { Name = "Cloture" })
 	end
 
@@ -5729,22 +5823,97 @@ function MapBuilder.BuildLobby(): Model
 end
 
 -- =====================================================================
--- MAP
+-- ARÈNE GÉNÉRIQUE (sol + enceinte) pour les maps du dossier Maps/
 -- =====================================================================
-function MapBuilder.BuildMap(): Model
-	local existing = workspace:FindFirstChild("Map")
-	if existing then return existing end
+local function arena(map, half: number, ground: Color3, wall: Color3, neon: Color3, wallH: number?)
+	local g = folder(map, "Sol")
+	part(g, V3(half * 2, 4, half * 2), CF(0, -2, 0), ground, { Name = "Sol", Sides = false })
+	local walls = folder(map, "Enceinte")
+	local h = wallH or 36
+	for i, w in {
+		{ V3(half * 2 + 8, h, 4), CF(0, h / 2, -half - 2) }, { V3(half * 2 + 8, h, 4), CF(0, h / 2, half + 2) },
+		{ V3(4, h, half * 2), CF(-half - 2, h / 2, 0) }, { V3(4, h, half * 2), CF(half + 2, h / 2, 0) },
+	} do
+		part(walls, w[1], w[2], wall, { Name = "Mur" })
+		local ns = if i <= 2 then V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2) else V3(w[1].X + 0.2, 0.7, w[1].Z - 0.6)
+		neonStrip(walls, ns, w[2] * CF(0, h / 2 + 0.4, 0), neon)
+	end
+	return g
+end
+
+-- Briques exposées aux modules de maps (server/Maps/*.luau)
+MapBuilder.H = {
+	part = part, block = block, folder = folder, slab = slab, railing = railing, pillar = pillar, jumpPad = jumpPad,
+	lamp = lamp, tree = tree, bench = bench, neonStrip = neonStrip, slideBlock = slideBlock, sign = sign,
+	spawnPoint = spawnPoint, studs = studs, arena = arena, PAL = PAL, RGB = RGB, V3 = V3, CF = CF, UI = UI,
+}
+
+-- =====================================================================
+-- REGISTRE DES MAPS (vote) - la Ville est intégrée, les autres viennent de server/Maps
+-- =====================================================================
+MapBuilder.Maps = {
+	{
+		Id = "ville", Name = "Ville", Order = 1, Clock = 15.2, Gradient = "cyan",
+		Icon = "Main/House/Blue House 1st Outline",
+		Description = "Toits, village, usine et jardins",
+		Build = function(_, map, spawns)
+			buildGround(map)
+			buildPlaza(map, spawns)
+			buildVillage(map, spawns)
+			buildRooftops(map, spawns)
+			buildIndustrial(map, spawns)
+			buildGardens(map, spawns)
+		end,
+	},
+}
+local mapsFolder = script:FindFirstChild("Maps")
+if mapsFolder then
+	for _, m in mapsFolder:GetChildren() do
+		if m:IsA("ModuleScript") then
+			local ok, def = pcall(require, m)
+			if ok and type(def) == "table" and def.Id then
+				table.insert(MapBuilder.Maps, def)
+			else
+				warn("[MapBuilder] map invalide : " .. m.Name, def)
+			end
+		end
+	end
+end
+table.sort(MapBuilder.Maps, function(a, b) return (a.Order or 99) < (b.Order or 99) end)
+
+function MapBuilder.GetMap(id: string?)
+	for _, m in MapBuilder.Maps do if m.Id == id then return m end end
+	return nil
+end
+
+--- Détruit la map courante et construit `id`. Retourne la définition chargée.
+function MapBuilder.LoadMap(id: string?)
+	local def = MapBuilder.GetMap(id) or MapBuilder.Maps[1]
+	local cur = workspace:FindFirstChild("Map")
+	if cur and cur:GetAttribute("MapId") == def.Id then return def end
+	if cur then cur:Destroy() end
 	local map = Instance.new("Model")
 	map.Name = "Map"
+	map:SetAttribute("MapId", def.Id)
 	local spawns = folder(map, "Spawns")
-	buildGround(map)
-	buildPlaza(map, spawns)
-	buildVillage(map, spawns)
-	buildRooftops(map, spawns)
-	buildIndustrial(map, spawns)
-	buildGardens(map, spawns)
+	def.Build(MapBuilder.H, map, spawns)
+	for _, p in map:GetDescendants() do
+		if p:IsA("BasePart") and CollectionService:HasTag(p, "SlideCeiling") then p.CollisionGroup = "SlideCeiling" end
+	end
 	map.Parent = workspace
-	return map
+	game:GetService("Lighting").ClockTime = def.Clock or 15.2
+	game:GetService("ReplicatedStorage"):SetAttribute("MapId", def.Id)
+	game:GetService("ReplicatedStorage"):SetAttribute("MapName", def.Name)
+	return def
+end
+
+--- Infos envoyées au client pour le vote (sans la fonction Build).
+function MapBuilder.Catalog()
+	local out = {}
+	for _, m in MapBuilder.Maps do
+		table.insert(out, { Id = m.Id, Name = m.Name, Description = m.Description, Icon = m.Icon, Gradient = m.Gradient })
+	end
+	return out
 end
 
 function MapBuilder.SetupCollisionGroups()
@@ -5786,12 +5955,9 @@ end
 function MapBuilder.Build()
 	MapBuilder.SetupCollisionGroups()
 	MapBuilder.SetupLighting()
-	local map = MapBuilder.BuildMap()
+	MapBuilder.LoadMap("ville")
+	local map = workspace:FindFirstChild("Map")
 	local lobby = MapBuilder.BuildLobby()
-	-- les plafonds d'une map réutilisée doivent aussi être dans le bon groupe
-	for _, p in CollectionService:GetTagged("SlideCeiling") do
-		if p:IsA("BasePart") then p.CollisionGroup = "SlideCeiling" end
-	end
 	if not MapBuilder.ShopPrompt then
 		MapBuilder.ShopPrompt = lobby:FindFirstChild("OpenShop", true)
 	end
@@ -5823,7 +5989,572 @@ function MapBuilder.GetLobbySpawn(): CFrame
 end
 
 return MapBuilder
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000025"><Properties><string name="Name">MovementService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties><Item class="Folder" referent="RBX0000002A"><Properties><string name="Name">Maps</string></Properties><Item class="ModuleScript" referent="RBX00000025"><Properties><string name="Name">Chateau</string><ProtectedString name="Source"><![CDATA[--[[
+	Map "Château" - cour pavée entourée de remparts praticables (Y=13) avec créneaux, 4 tours d'angle (Y=22),
+	donjon central (Y=20) traversé par un tunnel de slide, poternes de slide dans chaque rempart, douves et ponts.
+	Boucle haute : le chemin de ronde fait tout le tour ; rampes intérieures + jump pads vers les tours et le donjon.
+]]
+local Chateau = { Id = "chateau", Name = "Château", Order = 3, Clock = 17.4, Gradient = "violet",
+	Icon = "Item/Shield/Shield 1st Outline", Description = "Remparts, donjon et douves" }
+
+function Chateau.Build(H, map, spawns)
+	local RGB, V3, CF = H.RGB, H.V3, H.CF
+	local part, block, pillar = H.part, H.block, H.pillar
+	local STONE, DARK, GRASS, WOOD, BANNER = RGB(165, 165, 180), RGB(110, 112, 128), RGB(110, 190, 80), RGB(150, 100, 60), RGB(220, 40, 60)
+	local W, T, WH = 70, 6, 13 -- demi-taille intérieure+épaisseur, épaisseur, hauteur des remparts
+	H.arena(map, 120, GRASS, RGB(90, 150, 70), RGB(255, 200, 80), 30)
+	local z = H.folder(map, "Chateau")
+
+	-- cour pavée
+	part(z, V3(2 * (W - T / 2), 0.1, 2 * (W - T / 2)), CF(0, 0.05, 0), RGB(200, 195, 180), { Name = "Paves", Sides = false })
+
+	-- remparts : morceaux + poternes de slide + porte centrale (linteau)
+	local inner, outer = W - T / 2, W + T / 2 -- 67, 73
+	local c = W                                -- axe du mur
+	local function wallSide(alongX: boolean, sign: number)
+		local lo, hi = if alongX then -outer else -inner, if alongX then outer else inner
+		local segs = { { lo, -45 }, { -35, -6 }, { 6, 35 }, { 45, hi } }
+		for _, sg in segs do
+			local mid, len = (sg[1] + sg[2]) / 2, sg[2] - sg[1]
+			if alongX then block(z, mid, sign * c, len, WH, T, STONE, 0, { Name = "Rempart" })
+			else block(z, sign * c, mid, T, WH, len, STONE, 0, { Name = "Rempart" }) end
+		end
+		for _, m in { -40, 40 } do
+			local pos = if alongX then V3(m, 0, sign * c) else V3(sign * c, 0, m)
+			H.slideBlock(z, pos, T, 10, WH, DARK, if alongX then "Z" else "X")
+		end
+		-- porte : linteau au-dessus d'une ouverture de 9 de haut
+		if alongX then block(z, 0, sign * c, 12, WH - 9, T, DARK, 9, { Name = "Linteau" })
+		else block(z, sign * c, 0, T, WH - 9, 12, DARK, 9, { Name = "Linteau" }) end
+		-- créneaux côté extérieur (hors zones des tours)
+		for k = -42, 42, 6 do
+			local o = sign * (outer - 1)
+			if alongX then block(z, k, o, 2, 1.6, 2, STONE, WH, { Name = "Creneau" })
+			else block(z, o, k, 2, 1.6, 2, STONE, WH, { Name = "Creneau" }) end
+		end
+		-- bannières côté cour
+		for _, m in { -12, 12 } do
+			local face = sign * (inner - 0.15)
+			if alongX then part(z, V3(4, 7, 0.2), CF(m, 7, face), BANNER, { Name = "Banniere", CanCollide = false, NoStuds = true })
+			else part(z, V3(0.2, 7, 4), CF(face, 7, m), BANNER, { Name = "Banniere", CanCollide = false, NoStuds = true }) end
+		end
+	end
+	wallSide(true, -1); wallSide(true, 1); wallSide(false, -1); wallSide(false, 1)
+
+	-- tours d'angle (cylindres Y=22) + jump pads sur le chemin de ronde
+	for _, s in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
+		pillar(z, s[1] * W, s[2] * W, 22, 9, STONE, 0)
+		H.neonStrip(z, V3(0.6, 0.6, 0.6), CF(s[1] * W, 32, s[2] * W), RGB(255, 200, 80))
+		pillar(z, s[1] * W, s[2] * W, 9, 0.25, WOOD, 22)
+		part(z, V3(0.2, 3, 5), CF(s[1] * W, 29.5, s[2] * W + 2.6), BANNER, { Name = "Drapeau", CanCollide = false, NoStuds = true })
+		H.jumpPad(z, V3(s[1] * 53, WH, s[2] * W), 88, V3(s[1] * 12, 0, 0))
+	end
+
+	-- rampes intérieures vers le chemin de ronde (collées à la face intérieure)
+	local r = inner - 2.5
+	H.slab(z, V3(20, 0.1, -r), V3(42, WH, -r), 5, WOOD, 1, "Escalier")
+	H.slab(z, V3(r, 0.1, 20), V3(r, WH, 42), 5, WOOD, 1, "Escalier")
+	H.slab(z, V3(-20, 0.1, r), V3(-42, WH, r), 5, WOOD, 1, "Escalier")
+	H.slab(z, V3(-r, 0.1, -20), V3(-r, WH, -42), 5, WOOD, 1, "Escalier")
+
+	-- donjon (Y=20) coupé en deux par un tunnel de slide Est-Ouest
+	block(z, 0, -9, 30, 20, 12, STONE, 0, { Name = "Donjon" })
+	block(z, 0, 9, 30, 20, 12, STONE, 0, { Name = "Donjon" })
+	H.slideBlock(z, V3(0, 0, 0), 30, 6, 20, DARK, "X")
+	pillar(z, 0, 12, 10, 0.25, WOOD, 20)
+	part(z, V3(0.2, 3.5, 6), CF(0, 28, 15.1), RGB(255, 210, 60), { Name = "Etendard", CanCollide = false, NoStuds = true })
+	H.jumpPad(z, V3(0, 0.1, 30), 112, V3(0, 0, -14))
+	H.jumpPad(z, V3(0, 0.1, -30), 112, V3(0, 0, 14))
+
+	-- cour : puits, étals, bottes de foin, mannequins
+	pillar(z, 38, 38, 2.4, 3.2, STONE, 0.1)
+	part(z, V3(0.2, 5.6, 5.6), CF(38, 2.6, 38) * CFrame.Angles(0, 0, math.rad(90)), RGB(60, 150, 230),
+		{ Name = "Eau", Shape = Enum.PartType.Cylinder, Material = Enum.Material.Glass, NoStuds = true })
+	for i, p in { { -38, 38 }, { 38, -38 } } do
+		block(z, p[1], p[2], 10, 3, 4, WOOD, 0.1, { Name = "Etal" })
+		for k = 0, 4 do
+			block(z, p[1] - 4 + k * 2, p[2] + 2.5, 2, 0.5, 6, if (k + i) % 2 == 0 then BANNER else RGB(250, 250, 250), 7, { Name = "Auvent" })
+		end
+		pillar(z, p[1] - 4.5, p[2] + 5, 7, 0.2, WOOD, 0.1)
+		pillar(z, p[1] + 4.5, p[2] + 5, 7, 0.2, WOOD, 0.1)
+	end
+	for _, p in { { -45, -20 }, { 46, 18 }, { -20, 48 }, { 24, -50 } } do
+		block(z, p[1], p[2], 4, 2.5, 3, RGB(230, 200, 90), 0.1, { Name = "Foin" })
+	end
+	for _, p in { { -30, -30 }, { 30, 30 } } do
+		pillar(z, p[1], p[2], 4, 0.3, WOOD, 0.1)
+		block(z, p[1], p[2], 2.4, 2.4, 1, RGB(200, 160, 110), 3, { Name = "Mannequin" })
+	end
+	for _, p in { { -55, -55 }, { 55, -55 }, { -55, 55 }, { 55, 55 }, { -15, -40 }, { 15, 40 } } do
+		H.lamp(z, p[1], p[2], 0.1, RGB(255, 160, 70))
+	end
+
+	-- douves (eau peu profonde) + ponts devant les portes
+	local m1, m2 = 82, 94
+	local moat = { { 0, -(m1 + m2) / 2, 2 * m2, m2 - m1 }, { 0, (m1 + m2) / 2, 2 * m2, m2 - m1 },
+		{ -(m1 + m2) / 2, 0, m2 - m1, 2 * m1 }, { (m1 + m2) / 2, 0, m2 - m1, 2 * m1 } }
+	for _, w in moat do
+		part(z, V3(w[3], 0.2, w[4]), CF(w[1], 0.1, w[2]), RGB(50, 140, 220), { Name = "Douves", Material = Enum.Material.Glass, Transparency = 0.15 })
+	end
+	block(z, 0, -(m1 + m2) / 2, 12, 0.6, m2 - m1 + 4, WOOD, 0, { Name = "Pont" })
+	block(z, 0, (m1 + m2) / 2, 12, 0.6, m2 - m1 + 4, WOOD, 0, { Name = "Pont" })
+	block(z, -(m1 + m2) / 2, 0, m2 - m1 + 4, 0.6, 12, WOOD, 0, { Name = "Pont" })
+	block(z, (m1 + m2) / 2, 0, m2 - m1 + 4, 0.6, 12, WOOD, 0, { Name = "Pont" })
+
+	-- extérieur : arbres + camp
+	for _, p in { { -105, -105 }, { 105, -105 }, { -105, 105 }, { 105, 105 }, { -105, 40 }, { 105, -40 }, { 40, 105 }, { -40, -105 } } do
+		H.tree(z, p[1], p[2], 1.1, 0)
+	end
+
+	for _, p in { { -30, 15 }, { 30, -15 }, { -45, 45 }, { 45, -45 }, { 20, 55 }, { -20, -55 }, { 55, 20 }, { -55, -20 },
+		{ 0, 105 }, { 0, -105 }, { 105, 0 }, { -105, 0 }, { 100, 60 }, { -100, -60 } } do
+		H.spawnPoint(spawns, V3(p[1], 0.1, p[2]))
+	end
+end
+
+return Chateau
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000026"><Properties><string name="Name">Fete</string><ProtectedString name="Source"><![CDATA[--[[
+	Map "Fête foraine" - circuit surélevé de montagnes russes (boucle Y=14 avec rampes intérieures), manège central au
+	toit praticable, grande roue, chapiteaux rayés, stands, auto-tamponneuses, train fantôme (tunnel de slide),
+	sucettes géantes et trampolines (jump pads).
+]]
+local Fete = { Id = "fete", Name = "Fête foraine", Order = 6, Clock = 16.2, Gradient = "pink",
+	Icon = "Item/Lucky Block/Lucky Block 1st Outline", Description = "Manège, grande roue, train fantôme" }
+
+function Fete.Build(H, map, spawns)
+	local RGB, V3, CF = H.RGB, H.V3, H.CF
+	local part, block, pillar = H.part, H.block, H.pillar
+	local GROUND, TRACK = RGB(150, 225, 190), RGB(255, 80, 140)
+	local POP = { RGB(255, 70, 110), RGB(255, 200, 40), RGB(70, 170, 255), RGB(130, 230, 90), RGB(190, 100, 255) }
+	H.arena(map, 120, GROUND, RGB(255, 170, 60), RGB(80, 220, 255), 30)
+	local z = H.folder(map, "Fete")
+	local HH, R, Wd = 14, 75, 6
+
+	-- allée centrale pavée
+	part(z, V3(160, 0.1, 12), CF(0, 0.05, 0), RGB(250, 225, 170), { Name = "Allee", Sides = false })
+	part(z, V3(12, 0.08, 74), CF(0, 0.04, -43), RGB(250, 225, 170), { Name = "Allee", Sides = false })
+	part(z, V3(12, 0.08, 74), CF(0, 0.04, 43), RGB(250, 225, 170), { Name = "Allee", Sides = false })
+
+	-- circuit des montagnes russes (carré Y=14) + supports + rampes intérieures
+	local track = H.folder(z, "Circuit")
+	part(track, V3(2 * R + Wd, 1, Wd), CF(0, HH - 0.5, -R), TRACK, { Name = "Rail", Sides = false })
+	part(track, V3(2 * R + Wd, 1, Wd), CF(0, HH - 0.5, R), TRACK, { Name = "Rail", Sides = false })
+	part(track, V3(Wd, 1, 2 * R - Wd), CF(-R, HH - 0.5, 0), TRACK, { Name = "Rail", Sides = false })
+	part(track, V3(Wd, 1, 2 * R - Wd), CF(R, HH - 0.5, 0), TRACK, { Name = "Rail", Sides = false })
+	for k = -R, R, 25 do
+		for _, s in { -1, 1 } do
+			pillar(track, k, s * R, HH - 1, 0.7, RGB(250, 250, 250), 0)
+			if math.abs(k) < R then pillar(track, s * R, k, HH - 1, 0.7, RGB(250, 250, 250), 0) end
+		end
+	end
+	local r = R - Wd / 2 - 2.5
+	H.slab(track, V3(20, 0, -r), V3(44, HH, -r), 5, RGB(255, 200, 40), 1, "Rampe")
+	H.slab(track, V3(r, 0, 20), V3(r, HH, 44), 5, RGB(255, 200, 40), 1, "Rampe")
+	H.slab(track, V3(-20, 0, r), V3(-44, HH, r), 5, RGB(255, 200, 40), 1, "Rampe")
+	H.slab(track, V3(-r, 0, -20), V3(-r, HH, -44), 5, RGB(255, 200, 40), 1, "Rampe")
+	-- wagonnets décoratifs (bloquent un peu le passage : on les saute)
+	for i, p in { { -30, -R }, { 40, R }, { R, -10 }, { -R, 30 } } do
+		block(z, p[1], p[2], 4, 2, 4, POP[(i % #POP) + 1], HH, { Name = "Wagon" })
+	end
+
+	-- manège central (toit Y=10 praticable)
+	pillar(z, 0, 0, 1.2, 14, RGB(255, 240, 200), 0.1)
+	pillar(z, 0, 0, 9, 1.2, RGB(255, 200, 40), 1.3)
+	for k = 0, 7 do
+		local a = k / 8 * math.pi * 2
+		local x, zz = math.cos(a) * 10, math.sin(a) * 10
+		pillar(z, x, zz, 7.7, 0.25, RGB(255, 220, 90), 1.3)
+		block(z, x, zz, 1.4, 2, 3, POP[(k % #POP) + 1], 3, { Name = "Cheval" })
+	end
+	part(z, V3(1, 31, 31), CF(0, 9.5, 0) * CFrame.Angles(0, 0, math.rad(90)), RGB(255, 80, 110),
+		{ Name = "ToitManege", Shape = Enum.PartType.Cylinder, NoStuds = true })
+	pillar(z, 0, 0, 3, 3, RGB(255, 220, 90), 10)
+	for _, p in { { 24, 0, -10, 0 }, { -24, 0, 10, 0 } } do
+		H.jumpPad(z, V3(p[1], 0.1, p[2]), 72, V3(p[3], 0, p[4]))
+	end
+
+	-- grande roue (Nord, hors circuit)
+	local hub = V3(0, 26, -100)
+	for _, s in { -1, 1 } do H.slab(z, V3(s * 12, 0, -100), hub, 1.4, RGB(250, 250, 250), 1.4, "Pied") end
+	local prev
+	for k = 0, 16 do
+		local a = k / 16 * math.pi * 2
+		local p = hub + V3(math.cos(a) * 20, math.sin(a) * 20, 0)
+		if prev then H.slab(z, prev, p, 1, RGB(70, 170, 255), 1, "Jante") end
+		if k < 16 then
+			H.neonStrip(z, V3(0.4, 0.4, 0.4), CF(p), POP[(k % #POP) + 1])
+			if k % 2 == 0 then block(z, p.X, p.Z + 2.6, 3, 3, 3, POP[(k / 2 % #POP) + 1], p.Y - 3.2, { Name = "Nacelle" }) end
+		end
+		prev = p
+	end
+
+	-- chapiteaux rayés
+	local function tent(x, zz, w, d, h, c1, c2)
+		local n = math.floor(w / 2)
+		for i = 0, n - 1 do
+			block(z, x - w / 2 + 1 + i * 2, zz, 2, h, d, if i % 2 == 0 then c1 else c2, 0, { Name = "Chapiteau" })
+		end
+		block(z, x, zz, w + 1, 1.2, d + 1, c1, h, { Name = "Toit" })
+		block(z, x, zz, w - 4, 1.4, d - 4, c2, h + 1.2, { Name = "Toit" })
+		block(z, x, zz, w - 9, 1.4, d - 9, c1, h + 2.6, { Name = "Toit" })
+	end
+	tent(-45, -35, 18, 14, 8, RGB(255, 60, 80), RGB(255, 245, 235))
+	tent(45, 35, 18, 14, 8, RGB(60, 120, 255), RGB(255, 245, 235))
+
+	-- stands
+	for i, p in { { -40, 18 }, { 40, -18 }, { -18, 40 }, { 18, -40 } } do
+		block(z, p[1], p[2], 8, 3, 4, POP[(i % #POP) + 1], 0.1, { Name = "Stand" })
+		block(z, p[1], p[2] + 1, 9, 0.5, 6, RGB(255, 245, 235), 6.5, { Name = "Auvent" })
+		pillar(z, p[1] - 4, p[2] + 3.5, 6.4, 0.2, RGB(250, 250, 250), 0.1)
+		pillar(z, p[1] + 4, p[2] + 3.5, 6.4, 0.2, RGB(250, 250, 250), 0.1)
+	end
+
+	-- auto-tamponneuses (piste à bord bas)
+	local bx, bz, bw = 40, -45, 24
+	block(z, bx, bz, bw, 0.2, bw, RGB(60, 60, 80), 0, { Name = "Piste" })
+	block(z, bx, bz - bw / 2 - 0.5, bw + 2, 1.4, 1, RGB(255, 200, 40), 0, { Name = "Bordure" })
+	block(z, bx, bz + bw / 2 + 0.5, bw + 2, 1.4, 1, RGB(255, 200, 40), 0, { Name = "Bordure" })
+	block(z, bx - bw / 2 - 0.5, bz, 1, 1.4, bw, RGB(255, 200, 40), 0, { Name = "Bordure" })
+	block(z, bx + bw / 2 + 0.5, bz, 1, 1.4, bw, RGB(255, 200, 40), 0, { Name = "Bordure" })
+	for i, p in { { -6, -5 }, { 5, 4 }, { -4, 7 } } do
+		block(z, bx + p[1], bz + p[2], 3, 1.4, 4, POP[(i % #POP) + 1], 0.2, { Name = "Auto" })
+	end
+
+	-- train fantôme + autres tunnels
+	H.slideBlock(z, V3(-45, 0, 45), 20, 12, 9, RGB(40, 30, 60), "X")
+	H.slideBlock(z, V3(60, 0, 8), 12, 12, 7, RGB(190, 100, 255), "Z")
+	H.slideBlock(z, V3(-100, 0, -10), 12, 12, 7, RGB(255, 120, 60), "Z")
+	H.slideBlock(z, V3(100, 0, 60), 12, 12, 7, RGB(70, 170, 255), "X")
+
+	-- sucettes géantes
+	for i, p in { { -100, 100 }, { 100, -100 }, { 100, 100 }, { -100, -60 }, { 30, 100 } } do
+		pillar(z, p[1], p[2], 8, 0.35, RGB(250, 250, 250), 0)
+		part(z, V3(0.8, 6, 6), CF(p[1], 10.5, p[2]), POP[(i % #POP) + 1], { Name = "Sucette", Shape = Enum.PartType.Cylinder, NoStuds = true })
+	end
+	-- trampolines extérieurs (vers le circuit)
+	H.jumpPad(z, V3(95, 0, -40), 82, V3(-14, 0, 0))
+	H.jumpPad(z, V3(-95, 0, 40), 82, V3(14, 0, 0))
+
+	for _, p in { { 20, 20 }, { -20, -20 }, { 60, 60 }, { -60, -60 }, { -60, 60 }, { 60, -60 } } do
+		H.lamp(z, p[1], p[2], 0, RGB(255, 210, 150))
+	end
+
+	for _, p in { { 25, 8 }, { -25, -8 }, { 8, 25 }, { -8, -25 }, { 55, 20 }, { -55, -20 }, { 20, -60 }, { -20, 60 },
+		{ 105, 0 }, { -105, 20 }, { 0, 108 }, { 60, -105 }, { -60, 105 }, { 110, 85 } } do
+		H.spawnPoint(spawns, V3(p[1], 0.1, p[2]))
+	end
+end
+
+return Fete
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000027"><Properties><string name="Name">Neige</string><ProtectedString name="Source"><![CDATA[--[[
+	Map "Village alpin" - neige, lac gelé glissant au centre, chalets à toits plats enneigés (Y≈14.4) reliés par des
+	passerelles en boucle, tremplin de ski avec pad de saut, tunnels de slide dans des congères, sapins et bonshommes de neige.
+]]
+local Neige = { Id = "neige", Name = "Village alpin", Order = 5, Clock = 10.5, Gradient = "blue",
+	Icon = "Nature/Cloud/Cloud 1st Outline", Description = "Lac gelé, chalets et tremplin" }
+
+function Neige.Build(H, map, spawns)
+	local RGB, V3, CF = H.RGB, H.V3, H.CF
+	local part, block, pillar = H.part, H.block, H.pillar
+	local SNOW, ICE, WOOD, DARKWOOD, PINE = RGB(242, 246, 255), RGB(170, 220, 255), RGB(160, 100, 60), RGB(110, 70, 45), RGB(40, 120, 70)
+	H.arena(map, 120, SNOW, RGB(120, 160, 210), RGB(120, 220, 255), 30)
+	local z = H.folder(map, "Neige")
+	local ROOF = 14.4
+
+	-- lac gelé (matériau Ice : on glisse !)
+	part(z, V3(70, 0.2, 70), CF(0, 0.1, 0), ICE, { Name = "LacGele", Material = Enum.Material.Ice, Transparency = 0.1 })
+	for _, p in { { -10, 8 }, { 14, -12 }, { 4, 20 } } do
+		part(z, V3(6, 0.05, 0.4), CF(p[1], 0.225, p[2]), RGB(255, 255, 255), { Name = "Fissure", NoStuds = true, CanCollide = false })
+	end
+
+	-- chalets (toits plats praticables)
+	local function chalet(x, zz, sx, sz, roofCol)
+		local m = Instance.new("Model"); m.Name = "Chalet"; m.Parent = z
+		block(m, x, zz, sx, 13, sz, WOOD, 0, { Name = "Murs" })
+		block(m, x, zz, sx + 2, 1, sz + 2, roofCol, 13, { Name = "Toit" })
+		block(m, x, zz, sx + 1, 0.4, sz + 1, SNOW, 14, { Name = "Neige" })
+		block(m, x + sx / 4, zz + sz / 4, 2.4, 3.5, 2.4, RGB(150, 70, 60), ROOF, { Name = "Cheminee" })
+		-- fenêtres lumineuses
+		for _, side in { -1, 1 } do
+			part(m, V3(3, 3, 0.2), CF(x - sx / 4, 8, zz + side * (sz / 2 + 0.15)), RGB(255, 220, 140),
+				{ Name = "Fenetre", Material = Enum.Material.Neon, CanCollide = false })
+			part(m, V3(3, 3, 0.2), CF(x + sx / 4, 8, zz + side * (sz / 2 + 0.15)), RGB(255, 220, 140),
+				{ Name = "Fenetre", Material = Enum.Material.Neon, CanCollide = false })
+		end
+		part(m, V3(4, 6, 0.2), CF(x, 3, zz + sz / 2 + 0.15), DARKWOOD, { Name = "Porte", CanCollide = false, NoStuds = true })
+		return m
+	end
+	chalet(70, 40, 20, 16, RGB(200, 50, 50)); chalet(70, -40, 20, 16, RGB(60, 90, 200))
+	chalet(-70, 40, 20, 16, RGB(60, 90, 200)); chalet(-70, -40, 20, 16, RGB(200, 50, 50))
+	chalet(0, 85, 20, 16, RGB(240, 160, 30)); chalet(0, -85, 20, 16, RGB(240, 160, 30))
+
+	-- passerelles en boucle (bords de toit)
+	local function walk(a, b) H.slab(z, a, b, 4, DARKWOOD, 0.6, "Passerelle") end
+	walk(V3(70, ROOF, 31), V3(70, ROOF, -31))
+	walk(V3(-70, ROOF, 31), V3(-70, ROOF, -31))
+	walk(V3(11, ROOF, 80), V3(59, ROOF, 45))
+	walk(V3(-11, ROOF, 80), V3(-59, ROOF, 45))
+	walk(V3(11, ROOF, -80), V3(59, ROOF, -45))
+	walk(V3(-11, ROOF, -80), V3(-59, ROOF, -45))
+	-- accès : rampes extérieures + pads
+	H.slab(z, V3(110, 0, 40), V3(81, ROOF, 40), 6, DARKWOOD, 1, "Rampe")
+	H.slab(z, V3(-110, 0, -40), V3(-81, ROOF, -40), 6, DARKWOOD, 1, "Rampe")
+	H.jumpPad(z, V3(0, 0, 62), 82, V3(0, 0, 14))
+	H.jumpPad(z, V3(0, 0, -62), 82, V3(0, 0, -14))
+
+	-- tremplin de ski
+	H.slab(z, V3(-30, 0, -108), V3(-80, 18, -108), 8, SNOW, 1, "Tremplin")
+	block(z, -87, -108, 14, 18, 12, RGB(200, 210, 230), 0, { Name = "PlateformeTremplin" })
+	H.jumpPad(z, V3(-89, 18, -108), 95, V3(40, 0, 24))
+	for k = 0, 4 do
+		part(z, V3(0.4, 1.2, 0.4), CF(-35 - k * 10, 0.6 + k * 3.6 + 1, -112.5), RGB(255, 60, 60), { Name = "Fanion", CanCollide = false, NoStuds = true })
+	end
+
+	-- congères percées (tunnels de slide)
+	H.slideBlock(z, V3(-40, 0, 62), 14, 12, 7, SNOW, "X")
+	H.slideBlock(z, V3(40, 0, -62), 14, 12, 7, SNOW, "X")
+	H.slideBlock(z, V3(100, 0, -90), 12, 12, 7, SNOW, "Z")
+	H.slideBlock(z, V3(-100, 0, 90), 12, 12, 7, SNOW, "Z")
+
+	-- sapins
+	local function pine(x, zz, s)
+		block(z, x, zz, 1.2 * s, 3 * s, 1.2 * s, DARKWOOD, 0, { Name = "Tronc" })
+		block(z, x, zz, 7 * s, 3 * s, 7 * s, PINE, 3 * s, { Name = "Sapin" })
+		block(z, x, zz, 5 * s, 3 * s, 5 * s, PINE:Lerp(SNOW, 0.08), 6 * s, { Name = "Sapin" })
+		block(z, x, zz, 3 * s, 2.5 * s, 3 * s, PINE:Lerp(SNOW, 0.15), 9 * s, { Name = "Sapin" })
+		block(z, x, zz, 1.6 * s, 0.6 * s, 1.6 * s, SNOW, 11.5 * s, { Name = "NeigeSapin" })
+	end
+	for _, p in { { -105, -60, 1.1 }, { 105, 70, 1 }, { -105, 10, 0.9 }, { 105, -10, 1.2 }, { 40, 105, 1 }, { -40, 105, 1.1 },
+		{ 35, -100, 0.9 }, { -20, -60, 0.8 }, { 25, 55, 0.8 }, { -45, -20, 0.9 }, { 48, 15, 0.9 }, { 90, 105, 1 } } do
+		pine(p[1], p[2], p[3])
+	end
+	-- bonshommes de neige
+	for _, p in { { -25, 45 }, { 30, -45 }, { 95, 0 } } do
+		part(z, V3(4, 4, 4), CF(p[1], 2, p[2]), SNOW, { Name = "Boule", Shape = Enum.PartType.Ball, NoStuds = true })
+		part(z, V3(3, 3, 3), CF(p[1], 5.2, p[2]), SNOW, { Name = "Boule", Shape = Enum.PartType.Ball, NoStuds = true })
+		part(z, V3(2.1, 2.1, 2.1), CF(p[1], 7.5, p[2]), SNOW, { Name = "Tete", Shape = Enum.PartType.Ball, NoStuds = true })
+		part(z, V3(0.3, 0.3, 1.2), CF(p[1], 7.5, p[2] - 1.3), RGB(255, 140, 30), { Name = "Carotte", NoStuds = true, CanCollide = false })
+	end
+	for _, p in { { 45, 35 }, { -45, -35 }, { 45, -35 }, { -45, 35 }, { 0, 50 }, { 0, -50 } } do
+		H.lamp(z, p[1], p[2], 0, RGB(255, 200, 120))
+	end
+	_ = pillar
+
+	for _, p in { { 20, 20 }, { -20, -20 }, { 25, -25 }, { -25, 25 }, { 90, 60 }, { -90, -60 }, { 90, -60 }, { -90, 60 },
+		{ 60, 100 }, { -60, -100 }, { 100, 20 }, { -100, -20 }, { 0, 108 }, { 0, -108 } } do
+		H.spawnPoint(spawns, V3(p[1], 0.2, p[2]))
+	end
+end
+
+return Neige
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000028"><Properties><string name="Name">Neon</string><ProtectedString name="Source"><![CDATA[--[[
+	Map "Néon City" - de nuit, sol sombre quadrillé de néons, tours aux arêtes lumineuses.
+	Niveau 1 (Y=14) : 4 tours reliées par des ponts au disque holographique central.
+	Niveau 2 (Y=22) : 4 tours longues reliées en boucle par des "ponts de lumière" ; jump pads depuis le niveau 1.
+	Tuyaux néon de slide au sol, pads vers le disque central.
+]]
+local Neon = { Id = "neon", Name = "Néon City", Order = 4, Clock = 0.5, Gradient = "magenta",
+	Icon = "Main/Lighting/Purple Lighting 1st Outline", Description = "Nuit, ponts de lumière, néons" }
+
+function Neon.Build(H, map, spawns)
+	local RGB, V3, CF = H.RGB, H.V3, H.CF
+	local part, block, pillar, neon = H.part, H.block, H.pillar, H.neonStrip
+	local FLOOR, BODY = RGB(26, 28, 42), RGB(44, 48, 70)
+	local CYAN, PINK, GOLD = RGB(0, 235, 255), RGB(255, 40, 200), RGB(255, 210, 60)
+	H.arena(map, 120, FLOOR, RGB(36, 40, 60), PINK, 34)
+	local z = H.folder(map, "Neon")
+
+	-- quadrillage lumineux (hauteurs différentes pour les deux sens : pas de faces communes aux croisements)
+	for k = -90, 90, 30 do
+		part(z, V3(240, 0.06, 0.3), CF(0, 0.03, k), CYAN, { Name = "Grille", Material = Enum.Material.Neon, CanCollide = false, CastShadow = false })
+		part(z, V3(0.3, 0.09, 240), CF(k, 0.045, 0), PINK, { Name = "Grille", Material = Enum.Material.Neon, CanCollide = false, CastShadow = false })
+	end
+
+	local function tower(x, zz, sx, sz, h, col)
+		local m = Instance.new("Model"); m.Name = "Tour"; m.Parent = z
+		block(m, x, zz, sx, h - 0.6, sz, BODY, 0, { Name = "Corps" })
+		block(m, x, zz, sx + 0.8, 0.6, sz + 0.8, RGB(20, 22, 32), h - 0.6, { Name = "Toit" })
+		for _, c in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
+			neon(m, V3(0.4, h - 1.2, 0.4), CF(x + c[1] * (sx / 2 + 0.2), (h - 0.6) / 2, zz + c[2] * (sz / 2 + 0.2)), col)
+		end
+		for y = 4, h - 3, 6 do
+			neon(m, V3(sx, 0.4, 0.2), CF(x, y, zz - sz / 2 - 0.1), col)
+			neon(m, V3(sx, 0.4, 0.2), CF(x, y, zz + sz / 2 + 0.1), col)
+			neon(m, V3(0.2, 0.4, sz), CF(x - sx / 2 - 0.1, y, zz), col)
+			neon(m, V3(0.2, 0.4, sz), CF(x + sx / 2 + 0.1, y, zz), col)
+		end
+		local l = Instance.new("PointLight"); l.Color = col; l.Range = 24; l.Brightness = 1.5; l.Parent = m:FindFirstChild("Toit")
+		return m
+	end
+	-- niveau 1
+	for _, s in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do tower(s[1] * 50, s[2] * 50, 20, 20, 14, CYAN) end
+	-- niveau 2
+	tower(0, -85, 28, 16, 22, PINK); tower(0, 85, 28, 16, 22, PINK)
+	tower(-85, 0, 16, 28, 22, PINK); tower(85, 0, 16, 28, 22, PINK)
+	-- tours d'angle décoratives
+	for _, s in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do tower(s[1] * 100, s[2] * 100, 14, 14, 30, GOLD) end
+
+	-- disque holographique central (Y=14)
+	pillar(z, 0, 0, 13, 3, BODY, 0)
+	part(z, V3(1, 32, 32), CF(0, 13.5, 0) * CFrame.Angles(0, 0, math.rad(90)), RGB(30, 34, 52),
+		{ Name = "Disque", Shape = Enum.PartType.Cylinder, NoStuds = true })
+	part(z, V3(0.3, 33, 33), CF(0, 13.1, 0) * CFrame.Angles(0, 0, math.rad(90)), CYAN,
+		{ Name = "DisqueNeon", Shape = Enum.PartType.Cylinder, Material = Enum.Material.Neon, CanCollide = false })
+	for k = 0, 7 do
+		local a = k / 8 * math.pi * 2
+		neon(z, V3(1, 1, 1), CF(math.cos(a) * 10, 24, math.sin(a) * 10), if k % 2 == 0 then CYAN else PINK)
+	end
+	-- ponts niveau 1 : coins intérieurs des tours -> disque
+	for _, s in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
+		H.slab(z, V3(s[1] * 40, 14, s[2] * 40), V3(s[1] * 11, 14, s[2] * 11), 5, RGB(60, 66, 96), 0.8, "Pont")
+	end
+	-- ponts de lumière niveau 2 (boucle)
+	local function lightBridge(a, b)
+		H.slab(z, a, b, 5, CYAN, 0.6, "PontLumiere").Material = Enum.Material.Neon
+	end
+	lightBridge(V3(14, 22, -77), V3(77, 22, -14))
+	lightBridge(V3(77, 22, 14), V3(14, 22, 77))
+	lightBridge(V3(-14, 22, 77), V3(-77, 22, 14))
+	lightBridge(V3(-77, 22, -14), V3(-14, 22, -77))
+	-- accès : rampes sol -> niveau 1, pads niveau 1 -> niveau 2, pads sol -> disque
+	for _, s in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
+		H.slab(z, V3(s[1] * 50, 0, s[2] * 86), V3(s[1] * 50, 14, s[2] * 60.5), 6, RGB(60, 66, 96), 1, "Rampe")
+		H.jumpPad(z, V3(s[1] * 55, 14, s[2] * 55), 82, V3(-s[1] * 10, 0, -s[2] * 10))
+	end
+	for _, p in { { 25, 0, -12, 0 }, { -25, 0, 12, 0 }, { 0, 25, 0, -12 }, { 0, -25, 0, 12 } } do
+		H.jumpPad(z, V3(p[1], 0, p[2]), 80, V3(p[3], 0, p[4]))
+	end
+
+	-- tuyaux de slide
+	H.slideBlock(z, V3(0, 0, 52), 16, 11, 7, RGB(40, 30, 70), "X")
+	H.slideBlock(z, V3(0, 0, -52), 16, 11, 7, RGB(40, 30, 70), "X")
+	H.slideBlock(z, V3(52, 0, 0), 16, 11, 7, RGB(40, 30, 70), "Z")
+	H.slideBlock(z, V3(-52, 0, 0), 16, 11, 7, RGB(40, 30, 70), "Z")
+
+	-- bornes lumineuses
+	for _, p in { { 30, 75 }, { -30, -75 }, { 75, -30 }, { -75, 30 }, { 105, 50 }, { -105, -50 } } do
+		H.lamp(z, p[1], p[2], 0, if p[1] > 0 then CYAN else PINK)
+	end
+
+	for _, p in { { 30, 30 }, { -30, -30 }, { 30, -30 }, { -30, 30 }, { 70, 70 }, { -70, -70 }, { 70, -70 }, { -70, 70 },
+		{ 0, 110 }, { 0, -110 }, { 110, 0 }, { -110, 0 }, { 40, 105 }, { -40, -105 } } do
+		H.spawnPoint(spawns, V3(p[1], 0.1, p[2]))
+	end
+end
+
+return Neon
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000029"><Properties><string name="Name">Plage</string><ProtectedString name="Source"><![CDATA[--[[
+	Map "Plage tropicale" - sable chaud, mer turquoise, paillotes sur pilotis reliées par des ponts de corde (Y=14),
+	bar central surélevé, rochers percés de tunnels de slide, ponton, tour de surveillance, jump pads.
+	Boucle haute : bar central <-> 4 paillotes, paillotes Nord reliées par la cabane du phare.
+]]
+local Plage = { Id = "plage", Name = "Plage", Order = 2, Clock = 13.5, Gradient = "amber",
+	Icon = "Nature/Planet/Green Planet 1st Outline", Description = "Paillotes, rochers et ponton" }
+
+function Plage.Build(H, map, spawns)
+	local RGB, V3, CF = H.RGB, H.V3, H.CF
+	local part, block, slab, pillar = H.part, H.block, H.slab, H.pillar
+	local SAND, WATER, WOOD, STRAW, ROCK = RGB(240, 216, 160), RGB(40, 180, 235), RGB(170, 110, 60), RGB(235, 200, 110), RGB(150, 145, 140)
+	local HH = 14
+	H.arena(map, 120, SAND, RGB(80, 200, 220), RGB(255, 120, 200), 30)
+	local z = H.folder(map, "Plage")
+
+	-- mer (au Nord) : eau peu profonde praticable + écume
+	part(z, V3(240, 0.3, 50), CF(0, 0.15, -95), WATER, { Name = "Mer", Material = Enum.Material.Glass, Transparency = 0.2 })
+	part(z, V3(240, 0.1, 3), CF(0, 0.05, -68.5), RGB(250, 250, 255), { Name = "Ecume", NoStuds = true })
+
+	-- ponton vers le large
+	block(z, 0, -92, 8, 1, 40, WOOD, 2, { Name = "Ponton" })
+	for _, pz in { -76, -92, -108 } do
+		for _, px in { -3.5, 3.5 } do pillar(z, px, pz, 2, 0.5, RGB(120, 80, 40), 0) end
+	end
+	H.slab(z, V3(0, 0, -64), V3(0, 3, -72), 8, WOOD, 1, "RampePonton")
+	H.jumpPad(z, V3(0, 3, -108), 95, V3(0, 0, 18))
+
+	-- plateformes surélevées (paillotes) + bar central
+	local function platform(x, zz, size, name, roof)
+		local m = Instance.new("Model"); m.Name = name; m.Parent = z
+		part(m, V3(size, 1, size), CF(x, HH - 0.5, zz), WOOD, { Name = "Plancher", Sides = false })
+		for _, c in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
+			pillar(m, x + c[1] * (size / 2 - 1), zz + c[2] * (size / 2 - 1), HH - 1, 0.6, RGB(120, 80, 40), 0)
+		end
+		if roof then
+			-- cabane au centre (on fait le tour par le plancher) + toit de paille
+			block(m, x, zz, size - 8, 7, size - 8, RGB(200, 150, 90), HH, { Name = "Cabane" })
+			block(m, x, zz, size - 6, 1.2, size - 6, STRAW, HH + 7, { Name = "Paille" })
+			block(m, x, zz, size - 10, 1, size - 10, STRAW:Lerp(RGB(200, 160, 60), 0.4), HH + 8.2, { Name = "PailleHaut" })
+		end
+		return m
+	end
+	platform(0, 10, 26, "Bar", false)
+	block(z, 0, 10, 8, 1.2, 3, RGB(255, 90, 120), HH, { Name = "Comptoir" })
+	local huts = { { -62, -30 }, { 62, -30 }, { 78, 52 }, { -78, 52 } }
+	for i, h in huts do platform(h[1], h[2], 20, "Paillote" .. i, true) end
+	platform(0, 88, 18, "CabanePhare", true)
+	-- ponts de corde (Y = 14)
+	local function rope(a, b) H.slab(z, a, b, 4, RGB(205, 160, 100), 0.6, "PontDeCorde") end
+	rope(V3(-13, HH, 4), V3(-52, HH, -24))
+	rope(V3(13, HH, 4), V3(52, HH, -24))
+	rope(V3(13, HH, 18), V3(68, HH, 46))
+	rope(V3(-13, HH, 18), V3(-68, HH, 46))
+	rope(V3(68, HH, 60), V3(9, HH, 84))
+	rope(V3(-68, HH, 60), V3(-9, HH, 84))
+	-- accès depuis le sable
+	H.slab(z, V3(0, 0, 48), V3(0, HH, 23.5), 6, WOOD, 1, "EscalierBar")
+	H.slab(z, V3(-30, 0, 10), V3(-13.5, HH, 10), 5, WOOD, 1, "EscalierBar")
+	H.jumpPad(z, V3(-62, 0, -46), 80, V3(0, 0, 10))
+	H.jumpPad(z, V3(62, 0, -46), 80, V3(0, 0, 10))
+	H.jumpPad(z, V3(78, 0, 70), 80, V3(0, 0, -12))
+
+	-- rochers percés (tunnels de slide)
+	H.slideBlock(z, V3(-30, 0, 40), 14, 13, 8, ROCK, "X")
+	H.slideBlock(z, V3(40, 0, 10), 14, 13, 7, ROCK, "Z")
+	H.slideBlock(z, V3(-95, 0, -5), 12, 13, 8, ROCK, "Z")
+	H.slideBlock(z, V3(100, 0, 95), 12, 13, 7, ROCK, "X")
+	for _, r in { { -100, 100, 9 }, { 105, 15, 7 }, { 30, 105, 6 }, { -50, 95, 5 } } do
+		block(z, r[1], r[2], r[3] * 2, r[3], r[3] * 1.6, ROCK, 0, { Name = "Rocher" })
+	end
+
+	-- tour de surveillance
+	for _, c in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do pillar(z, 95 + c[1] * 3, -50 + c[2] * 3, 8, 0.4, RGB(250, 250, 250), 0) end
+	part(z, V3(8, 1, 8), CF(95, 8.5, -50), RGB(255, 70, 70), { Name = "Vigie" })
+	H.jumpPad(z, V3(95, 0, -38), 70, V3(0, 0, -10))
+
+	-- palmiers, parasols, serviettes
+	local function palm(x, zz, hgt)
+		for i = 0, hgt - 1 do
+			block(z, x + (i % 2) * 0.3, zz, 1.6, 1, 1.6, RGB(150, 100, 55), i, { Name = "Stipe" })
+		end
+		for k = 0, 3 do
+			local a = k * math.pi / 2 + 0.4
+			local tip = V3(x + math.cos(a) * 6, hgt - 1.5, zz + math.sin(a) * 6)
+			H.slab(z, V3(x, hgt + 0.6, zz), tip, 2.4, RGB(60, 190, 70), 0.3, "Palme")
+		end
+		part(z, V3(1.2, 1.2, 1.2), CF(x + 0.6, hgt - 0.4, zz + 0.6), RGB(110, 70, 30), { Name = "Coco", Shape = Enum.PartType.Ball, NoStuds = true })
+	end
+	for _, p in { { -100, -55, 11 }, { -40, -58, 10 }, { 40, -56, 12 }, { 105, -60, 10 }, { -105, 40, 12 }, { 108, 50, 11 },
+		{ -30, 75, 9 }, { 40, 70, 10 }, { 20, -30, 9 }, { -20, -35, 11 } } do
+		palm(p[1], p[2], p[3])
+	end
+	local colors = { RGB(255, 80, 120), RGB(80, 160, 255), RGB(255, 210, 60), RGB(120, 230, 120) }
+	for i, p in { { -60, 10 }, { 60, 25 }, { -25, -45 }, { 30, -45 }, { 90, -10 }, { -90, 75 } } do
+		pillar(z, p[1], p[2], 6, 0.2, RGB(240, 240, 240), 0)
+		part(z, V3(0.4, 8, 8), CF(p[1], 6.2, p[2]) * CFrame.Angles(0, 0, math.rad(90)), colors[(i % 4) + 1],
+			{ Name = "Parasol", Shape = Enum.PartType.Cylinder, NoStuds = true })
+		part(z, V3(3, 0.08, 5.5), CF(p[1] + 3.5, 0.04, p[2]), colors[((i + 1) % 4) + 1], { Name = "Serviette", NoStuds = true, CanCollide = false })
+	end
+	for _, p in { { -45, 0 }, { 45, 0 }, { 10, 45 }, { -80, -45 }, { 80, -45 }, { 0, -55 } } do
+		H.lamp(z, p[1], p[2], 0, RGB(255, 170, 90))
+	end
+
+	for _, p in { { -20, 30 }, { 20, 30 }, { -60, 20 }, { 60, 40 }, { -100, 20 }, { 100, 30 }, { -70, -50 }, { 70, -50 },
+		{ -20, -50 }, { 25, -55 }, { -40, 100 }, { 50, 100 }, { 0, 65 }, { -105, -20 } } do
+		H.spawnPoint(spawns, V3(p[1], 0, p[2]))
+	end
+end
+
+return Plage
+]]></ProtectedString></Properties></Item></Item></Item><Item class="ModuleScript" referent="RBX0000002C"><Properties><string name="Name">MovementService</string><ProtectedString name="Source"><![CDATA[--[[
 	MovementService - validation serveur du dash et du slide.
 	Le client applique la physique tout de suite (réactivité) et prévient le serveur via Remotes.MoveAction :
 		"Dash"        -> cooldown vérifié (Config.DashCooldown - tolérance). Refusé => Attribute "DashRejected" (le client se corrige).
@@ -5901,7 +6632,7 @@ function MovementService.Init()
 end
 
 return MovementService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000026"><Properties><string name="Name">RoleService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002D"><Properties><string name="Name">RoleService</string><ProtectedString name="Source"><![CDATA[--[[
 	RoleService - rôle de chaque joueur et visuels associés.
 	Rôles (Player Attribute "Role") :
 		"Lobby"   dans le lobby (queue cosmétique visible pour montrer son skin)
@@ -6010,7 +6741,7 @@ function RoleService.ApplyFreeze(player: Player)
 end
 
 return RoleService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000027"><Properties><string name="Name">ShopService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002E"><Properties><string name="Name">ShopService</string><ProtectedString name="Source"><![CDATA[--[[
 	ShopService - achats et équipement des cosmétiques (validés côté serveur).
 	RemoteFunctions :
 		ShopPurchase(itemId) -> { Ok, Message, Profile }
@@ -6088,7 +6819,7 @@ function ShopService.Init()
 end
 
 return ShopService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000028"><Properties><string name="Name">TailService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002F"><Properties><string name="Name">TailService</string><ProtectedString name="Source"><![CDATA[--[[
 	TailService - queues des participants (attache / retrait / skin équipé).
 	La queue est construite par Shared.TailBuilder ; le balancement est animé côté client (EffectsController).
 ]]
@@ -6139,28 +6870,31 @@ function TailService.Init()
 end
 
 return TailService
-]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX00000036"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX00000035"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX0000002A"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
-	AnimationController - animations procédurales (R15) pour TOUS les personnages, calculées localement.
-	Aucun ID d'animation n'est nécessaire : on écrit Motor6D.Transform à chaque frame (après l'Animator).
+]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX0000003F"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX0000003E"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000031"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
+	AnimationController - animations custom de TOUS les personnages (R15), calculées localement à chaque frame.
 
-	Le script "Animate" par défaut du joueur local est désactivé, donc aucun track n'est répliqué : chaque client
-	anime tous les personnages à partir de leur vitesse (répliquée) et de leurs Attributes (Dashing / Sliding).
+	États (déduits de la vitesse répliquée, de l'état Humanoid et des Attributes Sliding / Dashing) :
+		Idle  : respiration, transfert de poids, coup d'œil à gauche / droite toutes les ~4 s
+		Walk  : petite foulée souple, bras bas, tête qui suit le pas
+		Run   : penché en avant, bras pliés à 90° qui pompent, genoux hauts, rebond, rotation du torse
+		Jump  : impulsion (jambes repliées, bras qui montent)
+		Fall  : bras écartés qui moulinent, jambes qui cherchent le sol
+		Land  : réception amortie 0.22 s (squash : bassin bas, genoux pliés, bras devant)
+		Slide : corps renversé et abaissé, jambe avant tendue, bras d'équilibre, tête qui regarde devant
+		Dash  : gainé, bras en arrière, jambes en ciseau
+		Rip / Flinch : arrachage de queue (chasseur) / sursaut (capturé), superposés à l'état courant
 
-	Poses :
-		Idle  : respiration (torse + épaules), léger balancement de la tête
-		Walk / Run : balancement du torse, bras expressifs, rebond au run, inclinaison avant selon la vitesse
-		Air   : bras écartés, jambes décalées
-		Dash  : corps penché, bras en arrière, jambes tendues
-		Slide : corps renversé en arrière et abaissé, jambes devant, un bras levé
-		Rip   : (chasseur qui capture) bras qui attrape puis tire en arrière + rotation du torse
-		Flinch: (participant capturé) sursaut bras levés
-	Rig R6 : non géré procéduralement -> l'Animate par défaut reste actif (règle le jeu en R15 dans Game Settings > Avatar).
+	Procédural = on écrit Motor6D.Transform après l'Animator (RunService.Stepped). Le script "Animate" par défaut du
+	joueur local est coupé. Si un ID est renseigné dans Config.Animations[état], cet état joue ta vraie animation
+	(Animator, répliquée) et le procédural laisse la main pour cet état.
+	Rig R6 : non géré (règle le jeu en R15 dans Game Settings > Avatar).
 ]]
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
+local Config = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("Config"))
 local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 local player = Players.LocalPlayer
 
@@ -6172,19 +6906,29 @@ local JOINTS = {
 	LShoulder = { "LeftUpperArm", "LeftShoulder" },
 	RElbow = { "RightLowerArm", "RightElbow" },
 	LElbow = { "LeftLowerArm", "LeftElbow" },
+	RWrist = { "RightHand", "RightWrist" },
+	LWrist = { "LeftHand", "LeftWrist" },
 	RHip = { "RightUpperLeg", "RightHip" },
 	LHip = { "LeftUpperLeg", "LeftHip" },
 	RKnee = { "RightLowerLeg", "RightKnee" },
 	LKnee = { "LeftLowerLeg", "LeftKnee" },
+	RAnkle = { "RightFoot", "RightAnkle" },
+	LAnkle = { "LeftFoot", "LeftAnkle" },
 }
 
 type Rig = {
 	Char: Model, Hum: Humanoid, RootPart: BasePart,
 	Motors: { [string]: Motor6D }, Current: { [string]: CFrame },
 	Phase: number, Action: string?, ActionStart: number, ActionLen: number, Conns: { RBXScriptConnection },
+	WasAir: boolean, LandAt: number, AirTime: number, Seed: number, State: string,
+	Tracks: { [string]: AnimationTrack }, Playing: string?,
 }
 
 local rigs: { [Model]: Rig } = {}
+local CUSTOM = {} -- états qui ont un vrai ID d'animation
+for state, id in Config.Animations do
+	if type(id) == "string" and id ~= "" then CUSTOM[state] = id end
+end
 
 local function A(x: number, y: number, z: number): CFrame
 	return CFrame.Angles(x, y, z)
@@ -6204,7 +6948,8 @@ local function buildRig(char: Model): Rig?
 	local cur = {}
 	for k in motors do cur[k] = CFrame.identity end
 	return { Char = char, Hum = hum, RootPart = rootPart, Motors = motors, Current = cur, Phase = 0,
-		Action = nil, ActionStart = 0, ActionLen = 0, Conns = {} }
+		Action = nil, ActionStart = 0, ActionLen = 0, Conns = {}, WasAir = false, LandAt = -10, AirTime = 0,
+		Seed = math.random() * 100, State = "Idle", Tracks = {}, Playing = nil }
 end
 
 local function removeRig(char: Model)
@@ -6213,6 +6958,30 @@ local function removeRig(char: Model)
 	for _, c in r.Conns do c:Disconnect() end
 	for _, m in r.Motors do if m.Parent then m.Transform = CFrame.identity end end
 	rigs[char] = nil
+end
+
+--- Vraies animations (si IDs fournis) : uniquement pour le personnage local, l'Animator les réplique.
+local function playCustom(r: Rig, state: string)
+	if r.Char ~= player.Character then return end
+	local want = if CUSTOM[state] then state else nil
+	if r.Playing == want then return end
+	if r.Playing and r.Tracks[r.Playing] then r.Tracks[r.Playing]:Stop(0.15) end
+	r.Playing = want
+	if not want then return end
+	local track = r.Tracks[want]
+	if not track then
+		local animator = r.Hum:FindFirstChildOfClass("Animator")
+		if not animator then return end
+		local anim = Instance.new("Animation")
+		anim.AnimationId = CUSTOM[want]
+		local ok, t = pcall(animator.LoadAnimation, animator, anim)
+		if not ok then warn("[AnimationController] animation invalide pour " .. want .. " : " .. CUSTOM[want]); CUSTOM[want] = nil; return end
+		t.Priority = if want == "Slide" or want == "Dash" then Enum.AnimationPriority.Action else Enum.AnimationPriority.Movement
+		t.Looped = want ~= "Jump"
+		r.Tracks[want] = t
+		track = t
+	end
+	track:Play(0.15)
 end
 
 local function trackCharacter(char: Model)
@@ -6226,29 +6995,27 @@ local function trackCharacter(char: Model)
 		removeRig(char)
 		rigs[char] = r
 		if char == player.Character then
-			-- coupe l'Animate par défaut (walk/run/idle remplacés par les versions procédurales)
+			-- coupe l'Animate par défaut : walk / run / idle / jump sont remplacés
 			local anim = char:FindFirstChild("Animate")
 			if anim and anim:IsA("LocalScript") then anim.Enabled = false end
 			local animator = r.Hum:FindFirstChildOfClass("Animator")
 			if animator then
 				for _, t in animator:GetPlayingAnimationTracks() do t:Stop(0) end
-				table.insert(r.Conns, animator.AnimationPlayed:Connect(function(track)
-					-- sécurité : un track joué malgré tout (outil, émote) n'écrase pas nos poses de base
-					if track.Priority == Enum.AnimationPriority.Core then track:Stop(0) end
-				end))
 			end
 		end
 		table.insert(r.Conns, char.AncestryChanged:Connect(function()
 			if not char.Parent then removeRig(char) end
 		end))
-		-- les parties peuvent être remplacées au chargement de l'apparence
+		-- les parties du corps peuvent être remplacées au chargement de l'apparence
 		table.insert(r.Conns, char.ChildAdded:Connect(function(c)
 			if c:IsA("BasePart") then
 				task.defer(function()
-					if rigs[char] == r then
+					local cur = rigs[char]
+					if cur then
 						local nr = buildRig(char)
 						if nr then
-							nr.Conns = r.Conns
+							nr.Conns = cur.Conns
+							nr.Tracks = cur.Tracks
 							rigs[char] = nr
 						end
 					end
@@ -6269,86 +7036,151 @@ end
 -- =====================================================================
 -- POSES
 -- =====================================================================
-local function computePose(r: Rig, dt: number, t: number): { [string]: CFrame }
-	local pose: { [string]: CFrame } = {}
+local function stateOf(r: Rig, dt: number): (string, number, Vector3)
 	local vel = r.RootPart.AssemblyLinearVelocity
 	local speed = Vector3.new(vel.X, 0, vel.Z).Magnitude
-	local state = r.Hum:GetState()
-	local inAir = state == Enum.HumanoidStateType.Freefall or state == Enum.HumanoidStateType.Jumping
-	local sliding = r.Char:GetAttribute("Sliding") == true
-	local dashing = r.Char:GetAttribute("Dashing") == true
+	local hs = r.Hum:GetState()
+	local air = hs == Enum.HumanoidStateType.Freefall or hs == Enum.HumanoidStateType.Jumping
+	local now = os.clock()
+	if air then
+		r.AirTime += dt
+	elseif r.WasAir then
+		if r.AirTime > 0.25 then r.LandAt = now end
+		r.AirTime = 0
+	end
+	r.WasAir = air
+	if r.Char:GetAttribute("Sliding") == true then return "Slide", speed, vel end
+	if r.Char:GetAttribute("Dashing") == true then return "Dash", speed, vel end
+	if air then return (if vel.Y > 2 then "Jump" else "Fall"), speed, vel end
+	if now - r.LandAt < 0.22 then return "Land", speed, vel end
+	if speed > Config.WalkRunThreshold then return "Run", speed, vel end
+	if speed > 1.2 then return "Walk", speed, vel end
+	return "Idle", speed, vel
+end
 
-	if sliding then
-		pose.Root = CFrame.new(0, -1.35, 0.2) * A(1.05, 0, 0)
-		pose.Waist = A(-0.35, 0.15, 0)
-		pose.Neck = A(-0.55, 0, 0)
-		pose.RHip = A(1.25, 0, 0.05)
-		pose.LHip = A(0.75, 0, -0.08)
-		pose.RKnee = A(-0.1, 0, 0)
-		pose.LKnee = A(-1.1, 0, 0)
-		pose.RShoulder = A(0.5, 0, 1.25)
-		pose.LShoulder = A(-0.6, 0, -0.45)
+local function computePose(r: Rig, state: string, speed: number, vel: Vector3, dt: number, t: number): { [string]: CFrame }
+	local pose: { [string]: CFrame } = {}
+	if state == "Slide" then
+		local w = math.sin(t * 9) * 0.06
+		pose.Root = CFrame.new(0, -1.15, 0.25) * A(1.05, 0, 0.05) -- abaissé juste assez pour l'ouverture des tunnels (3 studs) sans traverser le sol
+		pose.Waist = A(-0.4, 0.18, 0)
+		pose.Neck = A(-0.6, 0, 0)
+		pose.RHip = A(1.3, 0, 0.06)
+		pose.LHip = A(0.7, 0, -0.1)
+		pose.RKnee = A(-0.08, 0, 0)
+		pose.LKnee = A(-1.15, 0, 0)
+		pose.RAnkle = A(0.4, 0, 0)
+		pose.RShoulder = A(0.55 + w, 0, 1.3)
+		pose.LShoulder = A(-0.7 - w, 0, -0.5)
+		pose.RElbow = A(0.35, 0, 0)
+		pose.LElbow = A(0.7, 0, 0)
+	elseif state == "Dash" then
+		pose.Root = CFrame.new(0, -0.15, 0) * A(-0.5, 0, 0)
+		pose.Waist = A(-0.22, 0, 0)
+		pose.Neck = A(0.4, 0, 0)
+		pose.RShoulder = A(-1.35, 0, 0.3)
+		pose.LShoulder = A(-1.35, 0, -0.3)
+		pose.RElbow = A(0.15, 0, 0)
+		pose.LElbow = A(0.15, 0, 0)
+		pose.RHip = A(0.8, 0, 0)
+		pose.LHip = A(-0.7, 0, 0)
+		pose.RKnee = A(-0.7, 0, 0)
+		pose.LKnee = A(-0.25, 0, 0)
+	elseif state == "Jump" then
+		local up = math.clamp(vel.Y / 50, 0, 1)
+		pose.Root = A(-0.1, 0, 0)
+		pose.Waist = A(0.08, 0, 0)
+		pose.Neck = A(0.2 * up, 0, 0)
+		pose.RShoulder = A(0.4 + 1.6 * up, 0, 0.35)
+		pose.LShoulder = A(0.4 + 1.6 * up, 0, -0.35)
 		pose.RElbow = A(0.4, 0, 0)
-		pose.LElbow = A(0.6, 0, 0)
-	elseif dashing then
-		pose.Root = A(-0.45, 0, 0)
-		pose.Waist = A(-0.2, 0, 0)
-		pose.Neck = A(0.35, 0, 0)
-		pose.RShoulder = A(-1.25, 0, 0.35)
-		pose.LShoulder = A(-1.25, 0, -0.35)
-		pose.RElbow = A(0.2, 0, 0)
-		pose.LElbow = A(0.2, 0, 0)
-		pose.RHip = A(0.7, 0, 0)
-		pose.LHip = A(-0.6, 0, 0)
+		pose.LElbow = A(0.4, 0, 0)
+		pose.RHip = A(0.9, 0, 0.05)
+		pose.LHip = A(0.25, 0, -0.05)
+		pose.RKnee = A(-1.4, 0, 0)
+		pose.LKnee = A(-0.5, 0, 0)
+		pose.RAnkle = A(-0.3, 0, 0)
+	elseif state == "Fall" then
+		local m = math.sin(t * 11 + r.Seed)
+		local fall = math.clamp(-vel.Y / 60, 0, 1)
+		pose.Root = A(0.05, 0, 0)
+		pose.Waist = A(-0.05, 0, m * 0.04)
+		pose.Neck = A(-0.25 * fall, 0, 0)
+		pose.RShoulder = A(0.5 + m * 0.35, 0, 1.4 + fall * 0.4)
+		pose.LShoulder = A(0.5 - m * 0.35, 0, -1.4 - fall * 0.4)
+		pose.RElbow = A(0.5, 0, 0)
+		pose.LElbow = A(0.5, 0, 0)
+		pose.RHip = A(0.35 + m * 0.15, 0, 0.08)
+		pose.LHip = A(-0.15 - m * 0.15, 0, -0.08)
 		pose.RKnee = A(-0.6, 0, 0)
-		pose.LKnee = A(-0.2, 0, 0)
-	elseif inAir then
-		local up = math.clamp(vel.Y / 40, -1, 1)
-		pose.Root = A(-0.08, 0, 0)
-		pose.Waist = A(0.05 * up, 0, 0)
-		pose.Neck = A(0.15 * up, 0, 0)
-		pose.RShoulder = A(0.3 + 0.4 * up, 0, 0.9)
-		pose.LShoulder = A(0.3 + 0.4 * up, 0, -0.9)
-		pose.RElbow = A(0.6, 0, 0)
-		pose.LElbow = A(0.6, 0, 0)
-		pose.RHip = A(0.55, 0, 0.05)
-		pose.LHip = A(-0.25, 0, -0.05)
-		pose.RKnee = A(-0.9, 0, 0)
-		pose.LKnee = A(-0.35, 0, 0)
-	elseif speed > 1.2 then
-		-- cycle de course : fréquence liée à la vitesse
-		local k = math.clamp(speed / 22, 0, 1.35) -- 0..1 = walk -> run
-		r.Phase += dt * (5 + speed * 0.42)
+		pose.LKnee = A(-0.3, 0, 0)
+	elseif state == "Land" then
+		local k = 1 - (os.clock() - r.LandAt) / 0.22
+		pose.Root = CFrame.new(0, -0.65 * k, 0) * A(-0.25 * k, 0, 0)
+		pose.Waist = A(-0.2 * k, 0, 0)
+		pose.RHip = A(0.8 * k, 0, 0.06)
+		pose.LHip = A(0.8 * k, 0, -0.06)
+		pose.RKnee = A(-1.3 * k, 0, 0)
+		pose.LKnee = A(-1.3 * k, 0, 0)
+		pose.RAnkle = A(0.5 * k, 0, 0)
+		pose.LAnkle = A(0.5 * k, 0, 0)
+		pose.RShoulder = A(0.7 * k, 0, 0.5 * k)
+		pose.LShoulder = A(0.7 * k, 0, -0.5 * k)
+		pose.RElbow = A(0.4, 0, 0)
+		pose.LElbow = A(0.4, 0, 0)
+	elseif state == "Run" then
+		local k = math.clamp(speed / 22, 0.6, 1.4)
+		r.Phase += dt * (6.5 + speed * 0.38)
 		local p = r.Phase
-		local s = math.sin(p)
-		local legAmp = 0.45 + 0.55 * k
-		local armAmp = 0.5 + 0.7 * k
-		local bounce = math.abs(math.cos(p)) * 0.28 * k
-		pose.Root = CFrame.new(0, bounce - 0.08 * k, 0) * A(-0.12 * k, s * 0.1, 0)
-		pose.Waist = A(-0.08 * k, -s * 0.22 * (0.5 + k), s * 0.04)
-		pose.Neck = A(0.1 * k, s * 0.15, 0)
-		pose.RHip = A(s * legAmp, 0, 0)
-		pose.LHip = A(-s * legAmp, 0, 0)
-		pose.RKnee = A(-0.15 - legAmp * 1.1 * math.max(0, math.sin(p + 1.4)), 0, 0)
-		pose.LKnee = A(-0.15 - legAmp * 1.1 * math.max(0, math.sin(p + 1.4 + math.pi)), 0, 0)
-		pose.RShoulder = A(-s * armAmp, 0, 0.12 + 0.1 * k)
-		pose.LShoulder = A(s * armAmp, 0, -0.12 - 0.1 * k)
-		pose.RElbow = A(0.35 + 0.6 * k + math.max(0, -s) * 0.4, 0, 0)
-		pose.LElbow = A(0.35 + 0.6 * k + math.max(0, s) * 0.4, 0, 0)
-	else
-		-- idle : respiration
-		local b = math.sin(t * 2.1)
-		pose.Root = CFrame.new(0, b * 0.035, 0)
-		pose.Waist = A(b * 0.035, math.sin(t * 0.7) * 0.05, 0)
-		pose.Neck = A(-b * 0.04, math.sin(t * 0.9) * 0.12, 0)
-		pose.RShoulder = A(0.05, 0, 0.1 + b * 0.04)
-		pose.LShoulder = A(0.05, 0, -0.1 - b * 0.04)
-		pose.RElbow = A(0.18, 0, 0)
-		pose.LElbow = A(0.18, 0, 0)
-		pose.RHip = A(0, 0, 0.03)
-		pose.LHip = A(0, 0, -0.03)
-		pose.RKnee = A(-0.04, 0, 0)
-		pose.LKnee = A(-0.04, 0, 0)
+		local s, c = math.sin(p), math.cos(p)
+		local leg = 0.75 * k
+		pose.Root = CFrame.new(0, math.abs(c) * 0.3 * k - 0.12, 0) * A(-0.2 * k, s * 0.12, 0)
+		pose.Waist = A(-0.12, -s * 0.32, s * 0.04)
+		pose.Neck = A(0.22, s * 0.2, 0)
+		pose.RHip = A(s * leg + 0.1, 0, 0)
+		pose.LHip = A(-s * leg + 0.1, 0, 0)
+		pose.RKnee = A(-0.2 - 1.5 * k * math.max(0, math.sin(p + 1.3)), 0, 0)
+		pose.LKnee = A(-0.2 - 1.5 * k * math.max(0, math.sin(p + 1.3 + math.pi)), 0, 0)
+		pose.RAnkle = A(0.3 * math.max(0, -s), 0, 0)
+		pose.LAnkle = A(0.3 * math.max(0, s), 0, 0)
+		pose.RShoulder = A(-s * 1.1 * k, 0, 0.18)
+		pose.LShoulder = A(s * 1.1 * k, 0, -0.18)
+		pose.RElbow = A(1.35, 0, 0)
+		pose.LElbow = A(1.35, 0, 0)
+		pose.RWrist = A(0.2, 0, 0)
+		pose.LWrist = A(0.2, 0, 0)
+	elseif state == "Walk" then
+		r.Phase += dt * (4.5 + speed * 0.45)
+		local p = r.Phase
+		local s, c = math.sin(p), math.cos(p)
+		pose.Root = CFrame.new(0, math.abs(c) * 0.1, 0) * A(-0.04, s * 0.06, s * 0.03)
+		pose.Waist = A(0, -s * 0.12, -s * 0.03)
+		pose.Neck = A(0.04, s * 0.08, s * 0.03)
+		pose.RHip = A(s * 0.5, 0, 0)
+		pose.LHip = A(-s * 0.5, 0, 0)
+		pose.RKnee = A(-0.1 - 0.7 * math.max(0, math.sin(p + 1.2)), 0, 0)
+		pose.LKnee = A(-0.1 - 0.7 * math.max(0, math.sin(p + 1.2 + math.pi)), 0, 0)
+		pose.RShoulder = A(-s * 0.55, 0, 0.1)
+		pose.LShoulder = A(s * 0.55, 0, -0.1)
+		pose.RElbow = A(0.3 + math.max(0, -s) * 0.3, 0, 0)
+		pose.LElbow = A(0.3 + math.max(0, s) * 0.3, 0, 0)
+	else -- Idle
+		local b = math.sin(t * 2.1 + r.Seed)
+		local shift = math.sin(t * 0.55 + r.Seed)
+		-- coup d'œil toutes les ~4 s
+		local cyc = (t + r.Seed) % 4.2
+		local look = if cyc < 0.9 then math.sin(cyc / 0.9 * math.pi) * (if math.floor((t + r.Seed) / 4.2) % 2 == 0 then 0.6 else -0.6) else 0
+		pose.Root = CFrame.new(shift * 0.06, b * 0.035, 0) * A(0, 0, shift * 0.03)
+		pose.Waist = A(b * 0.04, look * 0.25, -shift * 0.04)
+		pose.Neck = A(-b * 0.05, look, 0)
+		pose.RShoulder = A(0.06, 0, 0.12 + b * 0.05)
+		pose.LShoulder = A(0.06, 0, -0.12 - b * 0.05)
+		pose.RElbow = A(0.22, 0, 0)
+		pose.LElbow = A(0.22, 0, 0)
+		pose.RHip = A(0, 0, 0.04 - shift * 0.03)
+		pose.LHip = A(0, 0, -0.04 - shift * 0.03)
+		pose.RKnee = A(-0.05 - math.max(0, shift) * 0.12, 0, 0)
+		pose.LKnee = A(-0.05 - math.max(0, -shift) * 0.12, 0, 0)
 	end
 
 	-- actions ponctuelles superposées
@@ -6357,39 +7189,50 @@ local function computePose(r: Rig, dt: number, t: number): { [string]: CFrame }
 		if a >= 1 then
 			r.Action = nil
 		elseif r.Action == "Rip" then
-			-- 0 -> 0.35 : bras qui attrape devant ; 0.35 -> 1 : tire en arrière en tournant le torse
 			local grab = math.clamp(a / 0.35, 0, 1)
 			local pull = math.clamp((a - 0.35) / 0.65, 0, 1)
-			local arm = 1.7 * grab - 2.4 * pull
-			pose.RShoulder = A(arm, 0, 0.2)
-			pose.RElbow = A(0.2 + 0.9 * pull, 0, 0)
-			pose.Waist = (pose.Waist or CFrame.identity) * A(0, -0.6 * grab + 1.0 * pull, 0)
+			pose.RShoulder = A(1.8 * grab - 2.5 * pull, 0, 0.2)
+			pose.RElbow = A(0.15 + 1.0 * pull, 0, 0)
+			pose.RWrist = A(-0.5 * pull, 0, 0)
+			pose.Waist = (pose.Waist or CFrame.identity) * A(0, -0.6 * grab + 1.1 * pull, 0)
+			pose.Neck = A(0.1, -0.4 * grab + 0.6 * pull, 0)
 		elseif r.Action == "Flinch" then
 			local f = math.sin(a * math.pi)
-			pose.RShoulder = A(0.4 * f, 0, 1.6 * f)
-			pose.LShoulder = A(0.4 * f, 0, -1.6 * f)
-			pose.Waist = (pose.Waist or CFrame.identity) * A(0.35 * f, 0, 0)
-			pose.Neck = A(0.4 * f, 0, 0)
+			pose.RShoulder = A(0.4 * f, 0, 1.7 * f)
+			pose.LShoulder = A(0.4 * f, 0, -1.7 * f)
+			pose.Waist = (pose.Waist or CFrame.identity) * A(0.4 * f, 0, 0)
+			pose.Neck = A(0.45 * f, 0, 0)
 		end
 	end
 	return pose
 end
 
+local BLEND = { Slide = 22, Dash = 24, Land = 26, Jump = 16, Fall = 10, Run = 15, Walk = 12, Idle = 8 }
+
 RunService.Stepped:Connect(function(_, dt)
 	local t = os.clock()
-	local alpha = 1 - math.exp(-dt * 14)
-	for char, r in rigs do
+	for _, r in rigs do
 		if r.Hum.Health > 0 and r.RootPart.Parent then
-			local pose = computePose(r, dt, t)
+			local state, speed, vel = stateOf(r, dt)
+			r.State = state
+			playCustom(r, state)
+			if CUSTOM[state] then
+				-- ta vraie animation pilote cet état : on relâche les joints
+				for key, motor in r.Motors do
+					r.Current[key] = CFrame.identity
+					_ = motor
+				end
+				continue
+			end
+			local pose = computePose(r, state, speed, vel, dt, t)
+			local alpha = 1 - math.exp(-dt * (BLEND[state] or 14))
 			for key, motor in r.Motors do
 				local target = pose[key] or CFrame.identity
-				local cur = r.Current[key] or CFrame.identity
-				cur = cur:Lerp(target, alpha)
+				local cur = (r.Current[key] or CFrame.identity):Lerp(target, alpha)
 				r.Current[key] = cur
 				if motor.Parent then motor.Transform = cur end
 			end
 		end
-		_ = char
 	end
 end)
 
@@ -6406,12 +7249,11 @@ Players.PlayerRemoving:Connect(function(p)
 	if p.Character then removeRig(p.Character) end
 end)
 
--- animation d'arrachage de queue (chasseur) + sursaut (participant capturé)
 Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player)
 	if hunter and hunter.Character then playAction(hunter.Character, "Rip", 0.55) end
 	if runner and runner.Character then playAction(runner.Character, "Flinch", 0.45) end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000002B"><Properties><string name="Name">EffectsController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000032"><Properties><string name="Name">EffectsController</string><ProtectedString name="Source"><![CDATA[--[[
 	EffectsController - "juice" côté client (aucune logique de jeu ici).
 		* balancement procédural des queues de tous les personnages (C0 des Joints)
 		* traînée de dash (skin équipé, Attribute "TrailSkin") + élargissement bref du FOV pour le joueur local
@@ -6477,13 +7319,15 @@ RunService.RenderStepped:Connect(function()
 		local fwd = math.clamp(-localVel.Z / 24, -0.5, 1.6)   -- vitesse vers l'avant -> la queue se soulève en arrière
 		local side = math.clamp(localVel.X / 24, -1, 1)
 		local fall = math.clamp(vel.Y / 40, -1, 1)
+		-- en slide le torse bascule en arrière : on relève la queue pour qu'elle traîne derrière au lieu de rentrer dans le sol
+		local slideLift = if char:GetAttribute("Sliding") == true then -1.9 else 0
 		for i, j in d.Joints do
 			local base = j:GetAttribute("BaseC0")
 			if typeof(base) == "CFrame" and j.Parent then
 				local w = i / #d.Joints
 				local wave = math.sin(t * (5 + fwd * 5) - i * 0.7 + d.Seed) * (0.12 + 0.18 * fwd) * (0.4 + w)
 				local sway = math.sin(t * 1.9 + i * 0.5 + d.Seed) * 0.12 * (0.5 + w)
-				local lift = -(0.28 * fwd + 0.15 * fall) * (if i == 1 then 1.4 else 0.55)
+				local lift = -(0.28 * fwd + 0.15 * fall) * (if i == 1 then 1.4 else 0.55) + (if i == 1 then slideLift else slideLift * 0.04)
 				j.C0 = base * CFrame.Angles(lift + wave, 0, sway - side * 0.25 * w)
 			end
 		end
@@ -6762,7 +7606,7 @@ end
 ReplicatedStorage:GetAttributeChangedSignal("GameState"):Connect(updateMusic)
 player:GetAttributeChangedSignal("Role"):Connect(updateMusic)
 updateMusic()
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000002C"><Properties><string name="Name">MovementController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000033"><Properties><string name="Name">MovementController</string><ProtectedString name="Source"><![CDATA[--[[
 	MovementController - dash, slide et jump pads du joueur local.
 		Dash  : Q / Shift / bouton mobile / manette X  -> impulsion horizontale, cooldown Config.DashCooldown
 		Slide : C / Ctrl  / bouton mobile / manette Y  -> glissade qui conserve l'élan ; le personnage passe dans le
@@ -7047,7 +7891,7 @@ ContextActionService:BindActionAtPriority("TC_Slide", onAction, false, Enum.Cont
 Signals.Connect("MobileAction", function(name: string)
 	if name == "Dash" then dash() elseif name == "Slide" then slide() end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000034"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000003D"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
 	UIController - construit TOUTE l'interface avec le kit StudUI (une seule fois, ScreenGuis ResetOnSpawn = false)
 	et la branche aux Remotes / Attributes. Animations et sons via StudMotion.
 
@@ -7079,6 +7923,8 @@ local Results = require(script.Results)
 local Screens = require(script.Screens)
 local AdminPanel = require(script.AdminPanel)
 local Tutorial = require(script.Tutorial)
+local MapVote = require(script.MapVote)
+local AssetGuard = require(script.AssetGuard)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -7140,8 +7986,10 @@ ctx.OpenShop = function() if not inRoundForMe() then shop.Open() end end
 ctx.OpenInventory = function() if not inRoundForMe() then inventory.Open() end end
 ctx.OpenTutorial = function() if not inRoundForMe() then tutorial.Open() end end
 ctx.OpenAdmin = function() admin.Open() end
+local mapVote = MapVote.Build(ctx)
+ctx.OpenVote = function() if not inRoundForMe() then mapVote.Open() end end
 ctx.CloseAll = function()
-	for _, m in { shop, inventory, tutorial, admin } do m.Close() end
+	for _, m in { shop, inventory, tutorial, admin, mapVote } do m.Close() end
 end
 lobbyMenu = LobbyMenu.Build(ctx)
 if profile then lobbyMenu.SetProfile(profile) end
@@ -7185,6 +8033,7 @@ local function onState()
 		shop.Close()
 		inventory.Close()
 		tutorial.Close()
+		mapVote.Close()
 		task.delay(0.35, function() lobbyMenu.SetVisible(not inRoundForMe()) end)
 	end
 	if st == S.Lobby or st == S.Results then roleScreen.Hide() end
@@ -7209,6 +8058,8 @@ RunService.RenderStepped:Connect(function()
 		local release = ReplicatedStorage:GetAttribute("HuntersReleaseAt") or 0
 		if st == S.Round and now < release then
 			hud.SetSub(('Chasseurs lâchés dans <font color="#FF5A6A">%d</font>'):format(math.ceil(release - now)))
+		elseif st == S.Round or st == S.Countdown then
+			hud.SetSub(('Map : <font color="#FFD23F">%s</font>'):format(ReplicatedStorage:GetAttribute("MapName") or "?"))
 		elseif st == S.Intermission then
 			hud.SetSub(if player:GetAttribute("Ready") then "La manche commence bientôt !" else 'Clique sur <font color="#B4FF3C">JOUER</font> pour participer')
 		else
@@ -7223,6 +8074,8 @@ RunService.RenderStepped:Connect(function()
 	end
 	hud.UpdateDash(Signals.State.DashReadyAt, Signals.State.DashCooldown)
 	admin.Update()
+	mapVote.Update()
+	hud.SetVoteVisible(st == S.Intermission and mapVote.HasVote())
 end)
 
 -- =====================================================================
@@ -7255,7 +8108,12 @@ Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, 
 			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
 end)
-]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX0000002D"><Properties><string name="Name">AdminPanel</string><ProtectedString name="Source"><![CDATA[--[[
+
+-- vérifie que toutes les images de l'UI se chargent ; remplace celles qui sont indisponibles
+task.delay(2, function()
+	AssetGuard.Run(ctx, { playerGui })
+end)
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX00000034"><Properties><string name="Name">AdminPanel</string><ProtectedString name="Source"><![CDATA[--[[
 	AdminPanel - fenêtre "Admin" (archétype D "upgrade / prestige" du kit : en-tête violet, 2 stud panels d'état,
 	boîte d'info, gros CTA en ligne, rangée de petites actions).
 		LANCER (vert, confirmer)   TERMINER (rouge, détruire)
@@ -7360,7 +8218,59 @@ function AdminPanel.Build(ctx)
 end
 
 return AdminPanel
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002E"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000035"><Properties><string name="Name">AssetGuard</string><ProtectedString name="Source"><![CDATA[--[[
+	AssetGuard - vérifie que toutes les images de l'UI se chargent (ContentProvider:PreloadAsync).
+	Une image qui échoue (asset retiré / hors vente / modéré) est remplacée par une icône de secours du même kit,
+	et son ID est listé une seule fois dans l'Output : "[AssetGuard] image indisponible : rbxassetid://...".
+	Les textures décoratives (studs, soleil) qui échouent sont simplement masquées.
+]]
+
+local ContentProvider = game:GetService("ContentProvider")
+
+local AssetGuard = {}
+
+local DECOR = { Studs = true, Soleil = true, Reflets = true }
+
+function AssetGuard.Run(ctx, roots: { Instance })
+	local Icons = ctx.Icons
+	local fallbacks = {
+		Icons.Get("Main/Star/Golden Star 1st Outline"),
+		Icons.Get("Item/Gift/Red Gift 1st Outline"),
+	}
+	local byId: { [string]: { GuiObject } } = {}
+	for _, root in roots do
+		for _, d in root:GetDescendants() do
+			if (d:IsA("ImageLabel") or d:IsA("ImageButton")) and d.Image ~= "" then
+				byId[d.Image] = byId[d.Image] or {}
+				table.insert(byId[d.Image], d)
+			end
+		end
+	end
+	local ids = {}
+	for id in byId do table.insert(ids, id) end
+	task.spawn(function()
+		local failed = {}
+		pcall(function()
+			ContentProvider:PreloadAsync(ids, function(id, status)
+				if status == Enum.AssetFetchStatus.Failure then table.insert(failed, id) end
+			end)
+		end)
+		for _, id in failed do
+			warn("[AssetGuard] image indisponible : " .. id)
+			for _, img in byId[id] or {} do
+				if DECOR[img.Name] then
+					img.Visible = false
+				else
+					local fb = if id == fallbacks[1] then fallbacks[2] else fallbacks[1]
+					img.Image = fb
+				end
+			end
+		end
+	end)
+end
+
+return AssetGuard
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000036"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
 	Collection - fenêtres Shop et Inventaire (archétype "grille de slots + colonne d'onglets", cf. exemple 05 du kit).
 		Shop       : en-tête image rose + panier, tous les items, bouton Acheter (vert, prix) / Équiper (bleu) / Équipé (gris)
 		Inventaire : en-tête bleu + sac, uniquement les items possédés, bouton Équiper / Équipé
@@ -7382,8 +8292,9 @@ function Collection.Build(ctx, mode: string)
 	local win = UI.Window(gui, {
 		Size = Vector2.new(640, 470), Position = UDim2.new(0.5, -80, 0.5, 0),
 		Title = if isShop then "Shop" else "Inventaire",
-		Header = if isShop then "image" else "blue",
-		Icon = if isShop then UI.Assets.Basket else Icons.Get("Item/Backpack/Backpack 1st Outline"),
+		-- en-tête stud généré par le kit (l'ancienne texture "image" du shop n'est pas disponible hors du jeu de référence)
+		Header = if isShop then "pink" else "blue",
+		Icon = Icons.Get(if isShop then "Main/Shopping Bag/Red Shopping Bag 1st Outline" else "Item/Chest/Chest 1st Outline"),
 	})
 	local coinsPill = UI.Pill(win.Fenetre, "", { Width = 230, Position = UDim2.new(0.5, 0, 0, win.HeaderHeight), ZIndex = 20 })
 
@@ -7508,9 +8419,8 @@ function Collection.Build(ctx, mode: string)
 	end
 	choose(tabs[1])
 
-	-- en-tête : le panier du shop se balance
-	local basket = win.Entete:FindFirstChild("Panier")
-	if basket then Motion.Sway(basket, 3, 1.6) end
+	-- l'icône d'en-tête se balance (comme le panier de la référence)
+	if win.Icone then Motion.Sway(win.Icone, 3, 1.6) end
 
 	function api.Open() menu.Open() end
 	function api.Close() menu.Close() end
@@ -7519,7 +8429,7 @@ function Collection.Build(ctx, mode: string)
 end
 
 return Collection
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002F"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000037"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
 	Hud - HUD permanent construit avec le kit StudUI (offsets 1050x620 + une WindowScale par racine).
 		Haut centre  : minuteur (InsetBox + Pill d'état) + sous-titre (départ des chasseurs / joueurs prêts)
 		Haut gauche  : badge de rôle (bouton stud recoloré) + participants restants
@@ -7550,13 +8460,24 @@ function Hud.Build(ctx)
 	end
 
 	-- ------------------------------------------------------------ minuteur
-	local top = root("Minuteur", Vector2.new(300, 120), UDim2.new(0.5, 0, 0, 4), Vector2.new(0.5, 0))
+	local top = root("Minuteur", Vector2.new(300, 176), UDim2.new(0.5, 0, 0, 4), Vector2.new(0.5, 0))
 	local box = UI.InsetBox(top, { Name = "Boite", Size = UDim2.fromOffset(210, 62), Position = UDim2.fromOffset(45, 22) })
 	local timerText, timerShadow = UI.ShadowText(box, "--:--", { Font = "Gotham", Max = 44, Size = UDim2.new(1, -16, 1, -8),
 		Stroke = RGB(8, 12, 14), Thickness = 3, ZIndex = 8 })
 	local pill = UI.Pill(top, "LOBBY", { Width = 190, Position = UDim2.fromOffset(150, 22), TextSize = 18 })
 	local subText = UI.Text(top, "", { Name = "Sous", Font = "Gotham", Size = UDim2.fromOffset(320, 26), Position = UDim2.fromOffset(150, 102),
 		Max = 20, Rich = true, Stroke = RGB(10, 12, 16), Thickness = 2.6 })
+
+	-- bouton VOTE (intermission) : rouvre la fenêtre de vote de map
+	local voteBtn = UI.Button(top, { Name = "BoutonVote", Theme = "blue", Size = Vector2.new(150, 46), Position = UDim2.fromOffset(150, 144),
+		Text = "VOTE", TextSize = 26, Icon = Icons.Get("Item/Location Pin/Location Pin 1st Outline") })
+	voteBtn.Visible = false
+	local voteBadge = UI.NotifBadge(voteBtn)
+	Motion.PulseScale(voteBadge.Pulse)
+	Motion.BindButton(voteBtn, 1.05, ctx.Sons, function() if ctx.OpenVote then ctx.OpenVote() end end)
+	function api.SetVoteVisible(v: boolean)
+		voteBtn.Visible = v
+	end
 
 	function api.SetTimer(text: string, urgent: boolean?)
 		timerText.Text = text
@@ -7703,7 +8624,7 @@ function Hud.Build(ctx)
 end
 
 return Hud
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000030"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000038"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
 	LobbyMenu - menu gauche du lobby, géométrie exacte du "left menu" de référence (screenshot 01 / exemple 02) :
 		Frame 220x292 @ (0,14,0.5,0) ; bouton large 220x64 en haut, puis grille 2x2 de tuiles 106x106
 		(centres x 53/167, y 125/239), icône énorme qui déborde, gaps 8 px.
@@ -7732,8 +8653,8 @@ function LobbyMenu.Build(ctx)
 		return UI.Button(panel, { Name = name, Theme = theme, Size = Vector2.new(106, 106), Position = UDim2.fromOffset(x, y),
 			Text = text, IconLayout = "Big", Icon = Icons.Get(icon), TextSize = size or 28 })
 	end
-	local shop = tile("Shop", "red", "Shop", "Main/Shopping Cart/Red Shopping Cart 1st Outline", 53, 125)
-	local inv = tile("Inventaire", "blue", "Sac", "Item/Backpack/Backpack 1st Outline", 167, 125)
+	local shop = tile("Shop", "red", "Shop", "Main/Shopping Bag/Red Shopping Bag 1st Outline", 53, 125)
+	local inv = tile("Inventaire", "blue", "Objets", "Item/Chest/Chest 1st Outline", 167, 125, 26)
 	local tuto = tile("Tuto", "yellow", "Tuto", "Item/Book/Yellow Book 1st Outline", 53, 239)
 	local admin = tile("Admin", "purple", "Admin", "Item/Hammer/Hammer 1st Outline", 167, 239)
 
@@ -7787,7 +8708,146 @@ function LobbyMenu.Build(ctx)
 end
 
 return LobbyMenu
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000031"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000039"><Properties><string name="Name">MapVote</string><ProtectedString name="Source"><![CDATA[--[[
+	MapVote - fenêtre de vote de map pendant l'intermission (archétype C "calendrier de récompenses" du kit :
+	grandes tuiles stud panel colorées, soleil qui tourne derrière l'icône, nom en MAJUSCULES, bouton d'état).
+		VOTER (vert)  ->  VOTÉ ! (gris) sur la tuile choisie ; on peut changer d'avis.
+		Compteur de votes par tuile, couronne qui se balance sur la map en tête, Pill "Fin du vote dans 12 s".
+	S'ouvre seule au début de l'intermission, se ferme seule à la fin ; bouton VOTE du HUD pour la rouvrir.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local HttpService = game:GetService("HttpService")
+local TweenService = game:GetService("TweenService")
+
+local MapVote = {}
+local RGB = Color3.fromRGB
+
+function MapVote.Build(ctx)
+	local UI, Icons, Motion = ctx.UI, ctx.Icons, ctx.Motion
+	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+	local gui = UI.ScreenGui("MenuVote", 11, { Parent = ctx.PlayerGui })
+	Motion.CreateSounds(gui.Sons)
+	local win = UI.Window(gui, { Size = Vector2.new(640, 440), Title = "Vote de map", Header = "blue", TitleWidth = 400,
+		Icon = Icons.Get("Item/Location Pin/Location Pin 1st Outline") })
+	local pill = UI.Pill(win.Fenetre, "", { Width = 260, Position = UDim2.new(0.5, 0, 0, win.HeaderHeight), ZIndex = 20 })
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
+
+	local api = { Gui = gui, Menu = menu }
+	local tiles = {}
+	local myVote: string? = nil
+	local catalog = {}
+
+	local function loadCatalog()
+		local raw = ReplicatedStorage:GetAttribute("MapCatalog")
+		if typeof(raw) == "string" then
+			local ok, list = pcall(HttpService.JSONDecode, HttpService, raw)
+			if ok then for _, m in list do catalog[m.Id] = m end end
+		end
+	end
+
+	local function clear()
+		for _, t in tiles do t.Frame:Destroy() end
+		table.clear(tiles)
+	end
+
+	local function refresh()
+		local best, bestN = nil, 0
+		for _, t in tiles do
+			local n = ReplicatedStorage:GetAttribute("Votes_" .. t.Id) or 0
+			t.Count.Text = ('<font color="#FFD23F">%d</font> vote%s'):format(n, if n > 1 then "s" else "")
+			if n > bestN then best, bestN = t, n elseif n == bestN then best = nil end
+			local mine = myVote == t.Id
+			UI.Recolor(t.Button, if mine then "gray" else "green")
+			UI.SetButtonText(t.Button, if mine then "VOTÉ !" else "VOTER")
+			t.Selection.Enabled = mine
+		end
+		for _, t in tiles do t.Crown.Visible = t == best end
+	end
+
+	--- (Re)construit les tuiles à partir de VoteOptions.
+	local function build()
+		clear()
+		myVote = nil
+		local raw = ReplicatedStorage:GetAttribute("VoteOptions")
+		if typeof(raw) ~= "string" then return false end
+		local ok, ids = pcall(HttpService.JSONDecode, HttpService, raw)
+		if not ok or #ids == 0 then return false end
+		if next(catalog) == nil then loadCatalog() end
+		local n = #ids
+		local w, gap = 192, 14
+		local x0 = (635 - (n * w + (n - 1) * gap)) / 2
+		for i, id in ids do
+			local m = catalog[id] or { Name = id, Description = "", Icon = "Main/Star/Golden Star 1st Outline", Gradient = "cyan" }
+			local x = x0 + (i - 1) * (w + gap)
+			local tile = UI.StudPanel(win.Corps, { Name = "Map_" .. id, Size = UDim2.fromOffset(w, 290), Position = UDim2.fromOffset(x, 30),
+				Gradient = m.Gradient or "cyan", ZIndex = 3 })
+			local sel = UI.Stroke(tile, UI.Colors.Selection, 4, 0, nil, "Selection")
+			sel.Enabled = false
+			UI.ShadowText(tile, string.upper(m.Name), { Size = UDim2.new(1, -14, 0, 36), Position = UDim2.new(0.5, 0, 0, 28), Max = 28,
+				Thickness = 3.2, Stroke = RGB(10, 22, 40), ZIndex = 9 })
+			UI.Sunburst(tile, 190, { Position = UDim2.fromScale(0.5, 0.4), ZIndex = 4 })
+			UI.Image(tile, Icons.Get(m.Icon or "Main/Star/Golden Star 1st Outline"), { Name = "Icone", Size = UDim2.fromOffset(104, 104),
+				Position = UDim2.fromScale(0.5, 0.4), Rotation = -8, ZIndex = 6 })
+			UI.Text(tile, m.Description or "", { Font = "Bold", Size = UDim2.new(1, -18, 0, 36), Position = UDim2.new(0.5, 0, 1, -98), Max = 16,
+				Thickness = 2.2, Stroke = RGB(10, 22, 40), ZIndex = 8 })
+			local count = UI.Text(tile, "", { Name = "Votes", Size = UDim2.new(1, -18, 0, 24), Position = UDim2.new(0.5, 0, 1, -66), Max = 20,
+				Rich = true, Thickness = 2.6, Stroke = RGB(10, 22, 40), ZIndex = 8 })
+			local btn = UI.Button(tile, { Name = "Bouton", Theme = "green", Size = Vector2.new(166, 46), Position = UDim2.new(0.5, 0, 1, -28),
+				Text = "VOTER", TextSize = 24, ZIndex = 8 })
+			local crown = UI.Image(tile, Icons.Get("Item/Crown/Crown 1st Outline"), { Name = "Couronne", Size = UDim2.fromOffset(58, 58),
+				Position = UDim2.new(1, -6, 0, 2), Rotation = 14, ZIndex = 14 })
+			crown.Visible = false
+			Motion.Sway(crown, 6, 2.4)
+			Motion.BindButton(btn, 1.05, gui.Sons, function()
+				if myVote == id then return end
+				myVote = id
+				Remotes.MapVote:FireServer(id)
+				Motion.Play(gui.Sons, "Achat", 1.3)
+				Motion.Float(btn, "+1 vote !", UI.Colors.FloatSuccess)
+				local sc = tile:FindFirstChildOfClass("UIScale") or UI.new("UIScale", {}, tile)
+				sc.Scale = 1.06
+				TweenService:Create(sc, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+				refresh()
+			end)
+			table.insert(tiles, { Id = id, Frame = tile, Count = count, Button = btn, Selection = sel, Crown = crown })
+			ReplicatedStorage:GetAttributeChangedSignal("Votes_" .. id):Connect(function()
+				if tiles[i] and tiles[i].Id == id then refresh() end
+			end)
+		end
+		Motion.SpinSunbursts(win.Corps, 20)
+		refresh()
+		return true
+	end
+
+	function api.Update()
+		if not menu.IsOpen then return end
+		local left = math.max(0, (ReplicatedStorage:GetAttribute("EndsAt") or 0) - workspace:GetServerTimeNow())
+		pill.Texte.Text = ('Fin du vote dans <font color="#FFD23F">%d s</font>'):format(math.ceil(left))
+	end
+	function api.HasVote(): boolean
+		return #tiles > 0
+	end
+	function api.Open()
+		if #tiles == 0 and not build() then return end
+		menu.Open()
+		api.Update()
+	end
+	function api.Close() menu.Close() end
+
+	ReplicatedStorage:GetAttributeChangedSignal("VoteOptions"):Connect(function()
+		if ReplicatedStorage:GetAttribute("VoteOptions") then
+			if build() and not ctx.InRound() and ctx.Player:GetAttribute("Ready") == true then menu.Open() end
+		else
+			clear()
+			menu.Close()
+		end
+	end)
+	return api
+end
+
+return MapVote
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003A"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
 	Results - écran de résultats animé (fenêtre en-tête doré + trophée).
 		3 grandes cartes (slots à soleil) : SURVIE / QUEUES / PIÈCES (les pièces défilent avec un tic sonore)
 		détail des gains (InsetBox, valeurs surlignées #FFD23F)
@@ -7899,7 +8959,7 @@ function Results.Build(ctx)
 end
 
 return Results
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000032"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003B"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
 	Screens - notifications animées + écran de rôle / décompte de début de manche.
 	Notifications : Pills StudUI empilées en haut (pop Back-Out, 3 s, fondu), couleur selon le type.
 	Écran de rôle : StudPanel rouge (chasseur) ou bleu (participant), icône sticker inclinée qui déborde,
@@ -8071,7 +9131,7 @@ function Screens.BuildBanner(ctx)
 end
 
 return Screens
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000033"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000003C"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--[[
 	Tutorial - tutoriel en 4 pages (fenêtre en-tête vert + livre).
 	Chaque page : grand stud panel coloré (soleil qui tourne + icône sticker inclinée qui déborde, titre extrudé,
 	description Montserrat Bold), une rangée "extra" (touches, gains...), points de pagination, RETOUR (gris) / SUIVANT (bleu)
@@ -8211,4 +9271,4 @@ function Tutorial.Build(ctx)
 end
 
 return Tutorial
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX00000037"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000038"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX00000040"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000041"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>

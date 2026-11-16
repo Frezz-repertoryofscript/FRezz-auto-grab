@@ -20,8 +20,9 @@ function Collection.Build(ctx, mode: string)
 	local win = UI.Window(gui, {
 		Size = Vector2.new(640, 470), Position = UDim2.new(0.5, -80, 0.5, 0),
 		Title = if isShop then "Shop" else "Inventaire",
-		Header = if isShop then "image" else "blue",
-		Icon = if isShop then UI.Assets.Basket else Icons.Get("Item/Backpack/Backpack 1st Outline"),
+		-- en-tête stud généré par le kit (l'ancienne texture "image" du shop n'est pas disponible hors du jeu de référence)
+		Header = if isShop then "pink" else "blue",
+		Icon = Icons.Get(if isShop then "Main/Shopping Bag/Red Shopping Bag 1st Outline" else "Item/Chest/Chest 1st Outline"),
 	})
 	local coinsPill = UI.Pill(win.Fenetre, "", { Width = 230, Position = UDim2.new(0.5, 0, 0, win.HeaderHeight), ZIndex = 20 })
 
@@ -146,9 +147,8 @@ function Collection.Build(ctx, mode: string)
 	end
 	choose(tabs[1])
 
-	-- en-tête : le panier du shop se balance
-	local basket = win.Entete:FindFirstChild("Panier")
-	if basket then Motion.Sway(basket, 3, 1.6) end
+	-- l'icône d'en-tête se balance (comme le panier de la référence)
+	if win.Icone then Motion.Sway(win.Icone, 3, 1.6) end
 
 	function api.Open() menu.Open() end
 	function api.Close() menu.Close() end

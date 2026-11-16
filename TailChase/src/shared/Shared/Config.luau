@@ -17,6 +17,7 @@ Config.HunterReleaseDelay = 3    -- avance des participants : les chasseurs part
 Config.RoundTime = 180           -- 3 minutes
 Config.ResultsTime = 10
 Config.ExtraHunterThreshold = 10 -- au-delà de ce nombre de joueurs : 2 chasseurs
+Config.VoteOptions = 3          -- nombre de maps proposées au vote pendant l'intermission
 
 -- =====================================================================
 -- ADMIN (panel « Admin » du lobby)
@@ -132,6 +133,23 @@ Config.HunterColor = Color3.fromRGB(255, 30, 50)
 Config.RunnerColor = Color3.fromRGB(60, 170, 255)
 Config.TailSegments = 6
 Config.TailSegmentLength = 0.75
+
+-- =====================================================================
+-- ANIMATIONS
+-- Par défaut TOUT est procédural (AnimationController) : aucune animation à uploader.
+-- Si tu crées tes propres animations (Animation Editor -> Publish), colle leur ID ici : l'état correspondant
+-- jouera alors ton animation (répliquée à tous) et le procédural ne s'appliquera plus à cet état.
+-- =====================================================================
+Config.Animations = {
+	Idle = "",  -- ex : "rbxassetid://123456789"
+	Walk = "",
+	Run = "",
+	Jump = "",
+	Fall = "",
+	Slide = "",
+	Dash = "",
+}
+Config.WalkRunThreshold = 14 -- au-dessus : cycle "course", en dessous : "marche"
 
 Config.States = {
 	Lobby = "Lobby",

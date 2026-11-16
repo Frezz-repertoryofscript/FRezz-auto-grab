@@ -1,10 +1,12 @@
 --[[
-	MapBuilder - génère la map studded (≈300x300) et le lobby au démarrage du serveur.
+	MapBuilder - génère les maps studded (vote : Ville + les modules de server/Maps) et le lobby.
+	Une seule map existe à la fois dans Workspace.Map ; LoadMap(id) détruit l'ancienne et construit la gagnante du vote.
+	Le lobby est construit une fois (un modèle Workspace.Lobby déjà présent est réutilisé tel quel).
 
-	Pourquoi généré par code : le projet est livré en fichiers Rojo (pas de .rbxl). Si Workspace contient déjà un
-	modèle "Map" / "Lobby" (par ex. après l'avoir sauvegardé depuis Studio et retouché à la main), il est réutilisé tel quel.
+	Règle anti z-fighting (vérifiée par tests/run.sh) : deux faces de même orientation ne doivent jamais être
+	coplanaires ET se recouvrir. Les rampes/ponts (slab) sont surélevés de 0.06 pour ne jamais affleurer leur support.
 
-	Repères (Y = 0 = sol) :
+	Ville - repères (Y = 0 = sol) :
 		Place centrale  : centre, anneau surélevé (passerelle) à Y=14, fontaine, rampes, jump pads
 		Village (NE)    : 3x3 maisons à toits plats (Y=14) reliés par planches, ruelles avec tunnels de slide
 		Toits (SE)      : tours de hauteurs variées, passerelles, jump pads, petit parcours de saut flottant
@@ -129,7 +131,8 @@ local function slab(parent, a: Vector3, b: Vector3, width: number, color: Color3
 	local len = (b - a).Magnitude
 	local mid = (a + b) / 2
 	local cf = CFrame.lookAt(mid, b)
-	cf = cf * CF(0, -t / 2, 0)
+	-- +0.06 : le dessus ne coïncide jamais avec le sol / toit sur lequel il s'appuie (anti z-fighting)
+	cf = cf * CF(0, -t / 2 + 0.06, 0)
 	return part(parent, V3(width, t, len), cf, color, { Name = name or "Rampe", Sides = false })
 end
 
@@ -194,7 +197,7 @@ local function bench(parent, x, z, rotY, y0)
 	local y = y0 or 0
 	local base = CF(x, y, z) * CFrame.Angles(0, math.rad(rotY or 0), 0)
 	part(parent, V3(5, 0.5, 1.6), base * CF(0, 1.4, 0), RGB(200, 120, 60), { Name = "Banc" })
-	part(parent, V3(5, 1.4, 0.4), base * CF(0, 2.3, 0.7), RGB(200, 120, 60), { Name = "Dossier" })
+	part(parent, V3(4.8, 1.4, 0.4), base * CF(0, 2.3, 0.7), RGB(200, 120, 60), { Name = "Dossier" })
 	part(parent, V3(0.5, 1.2, 1.4), base * CF(-2.1, 0.6, 0), RGB(50, 50, 60), { Name = "Pied", NoStuds = true })
 	part(parent, V3(0.5, 1.2, 1.4), base * CF(2.1, 0.6, 0), RGB(50, 50, 60), { Name = "Pied", NoStuds = true })
 end
@@ -231,7 +234,7 @@ local function slideBlock(parent, center: Vector3, length: number, width: number
 		{ Name = "Ombre", CanCollide = false, NoStuds = true, CastShadow = false })
 	for _, s in { -1, 1 } do
 		local endOff = if alongX then V3(s * (length / 2 + 0.05), 0, 0) else V3(0, 0, s * (length / 2 + 0.05))
-		neonStrip(m, sz(0.2, TUNNEL_W + 0.6, 0.4), CF(V3(center.X, y + TUNNEL_H + 0.2, center.Z) + endOff), PAL.Neon1)
+		neonStrip(m, sz(0.2, TUNNEL_W + 0.6, 0.3), CF(V3(center.X, y + TUNNEL_H + 0.25, center.Z) + endOff), PAL.Neon1)
 		-- panneau "SLIDE" au dessus de l'entrée
 		local sign = part(m, sz(0.3, 4.5, 1.6), CF(V3(center.X, y + math.min(height - 0.9, TUNNEL_H + 1.4), center.Z) + endOff * 1.01), RGB(20, 24, 32),
 			{ Name = "PanneauSlide", NoStuds = true, CanCollide = false })
@@ -277,7 +280,7 @@ local function buildGround(map)
 	part(g, V3(300, 4, 300), CF(0, -2, 0), PAL.Road, { Name = "Route", Sides = false })
 	-- marquages de route
 	for i = -3, 3 do
-		if i ~= 0 then
+		if i ~= 0 and math.abs(i) ~= 2 then
 			part(g, V3(6, 0.1, 1), CF(i * 20, 0.05, 43), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
 			part(g, V3(6, 0.1, 1), CF(i * 20, 0.05, -43), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
 			part(g, V3(1, 0.1, 6), CF(43, 0.05, i * 20), PAL.RoadLine, { Name = "Marquage", NoStuds = true, CanCollide = false })
@@ -286,7 +289,7 @@ local function buildGround(map)
 	end
 	-- dalles de zones (léger trottoir de 0.4)
 	part(g, V3(70, 0.4, 70), CF(0, 0.2, 0), PAL.Plaza, { Name = "Place" })
-	part(g, V3(30, 0.42, 30), CF(0, 0.21, 0), PAL.PlazaAlt, { Name = "PlaceCentre" })
+	part(g, V3(30, 0.1, 30), CF(0, 0.45, 0), PAL.PlazaAlt, { Name = "PlaceCentre", Sides = false })
 	part(g, V3(96, 0.4, 96), CF(99, 0.2, -99), RGB(200, 230, 150), { Name = "SolVillage" })
 	part(g, V3(96, 0.4, 96), CF(99, 0.2, 99), RGB(150, 160, 190), { Name = "SolToits" })
 	part(g, V3(96, 0.4, 96), CF(-99, 0.2, 99), PAL.Concrete, { Name = "SolIndustriel" })
@@ -294,12 +297,13 @@ local function buildGround(map)
 
 	-- murs d'enceinte (hauts, colorés, néon en haut)
 	local walls = folder(map, "Enceinte")
-	for _, w in {
+	for i, w in {
 		{ V3(308, 40, 4), CF(0, 20, -152) }, { V3(308, 40, 4), CF(0, 20, 152) },
 		{ V3(4, 40, 300), CF(-152, 20, 0) }, { V3(4, 40, 300), CF(152, 20, 0) },
 	} do
 		part(walls, w[1], w[2], PAL.Wall, { Name = "Mur" })
-		neonStrip(walls, V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2), w[2] * CF(0, 20.4, 0), PAL.Neon2)
+		local ns = if i <= 2 then V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2) else V3(w[1].X + 0.2, 0.7, w[1].Z - 0.6)
+		neonStrip(walls, ns, w[2] * CF(0, 20.4, 0), PAL.Neon2)
 	end
 end
 
@@ -334,8 +338,8 @@ local function buildPlaza(map, spawns)
 	part(ring, V3(2 * R + Wd, 1, Wd), CF(0, H - 0.5, R), PAL.Ring, { Name = "AnneauS", Sides = false })
 	part(ring, V3(Wd, 1, 2 * R - Wd), CF(R, H - 0.5, 0), PAL.Ring, { Name = "AnneauE", Sides = false })
 	part(ring, V3(Wd, 1, 2 * R - Wd), CF(-R, H - 0.5, 0), PAL.Ring, { Name = "AnneauO", Sides = false })
-	neonStrip(ring, V3(2 * R + Wd, 0.3, 0.3), CF(0, H - 1.1, -R - Wd / 2), PAL.Neon1)
-	neonStrip(ring, V3(2 * R + Wd, 0.3, 0.3), CF(0, H - 1.1, R + Wd / 2), PAL.Neon1)
+	neonStrip(ring, V3(2 * R + Wd - 0.6, 0.3, 0.3), CF(0, H - 1.1, -R - Wd / 2), PAL.Neon1)
+	neonStrip(ring, V3(2 * R + Wd - 0.6, 0.3, 0.3), CF(0, H - 1.1, R + Wd / 2), PAL.Neon1)
 	for _, sx in { -1, 1 } do
 		for _, sz in { -1, 1 } do
 			pillar(ring, sx * R, sz * R, H - 1, 1.1, PAL.White)
@@ -417,7 +421,7 @@ local function buildVillage(map, spawns)
 			block(house, x, zc, S + 1, 1, S + 1, roofCol, H - 0.6, { Name = "Toit" })
 			-- porte + fenêtres décoratives (sans collision)
 			for _, f in { { 0, S / 2 + 0.1 }, { 0, -S / 2 - 0.1 } } do
-				part(house, V3(4, 6, 0.3), CF(x + f[1], 3.4, zc + f[2]), RGB(120, 70, 40), { Name = "Porte", CanCollide = false, NoStuds = true })
+				part(house, V3(4, 5.9, 0.3), CF(x + 5, 3.45, zc + f[2]), RGB(120, 70, 40), { Name = "Porte", CanCollide = false, NoStuds = true })
 				for _, wx in { -7, 7 } do
 					part(house, V3(3.5, 3, 0.3), CF(x + wx, 9, zc + f[2]), RGB(170, 230, 255),
 						{ Name = "Fenetre", CanCollide = false, Material = Enum.Material.Glass, NoStuds = true, Transparency = 0.1 })
@@ -429,10 +433,10 @@ local function buildVillage(map, spawns)
 			end
 			-- planches entre toits (certaines volontairement absentes : saut de 8 studs, faisable avec dash)
 			if ix < 3 and not (ix == 2 and iz == 2) then
-				slab(z, V3(x + S / 2, H + 0.4, zc), V3(x + 30 - S / 2, H + 0.4, zc), 4, PAL.Bridge, 0.8, "Planche")
+				slab(z, V3(x + (S + 1) / 2, H + 0.4, zc), V3(x + 30 - (S + 1) / 2, H + 0.4, zc), 4, PAL.Bridge, 0.8, "Planche")
 			end
 			if iz < 3 and not (ix == 1 and iz == 2) then
-				slab(z, V3(x, H + 0.4, zc - S / 2), V3(x, H + 0.4, zc - 30 + S / 2), 4, PAL.Bridge, 0.8, "Planche")
+				slab(z, V3(x, H + 0.4, zc - (S + 1) / 2), V3(x, H + 0.4, zc - 30 + (S + 1) / 2), 4, PAL.Bridge, 0.8, "Planche")
 			end
 		end
 	end
@@ -470,7 +474,7 @@ local function buildRooftops(map, spawns)
 		local m = Instance.new("Model")
 		m.Name = "Tour" .. i
 		m.Parent = z
-		block(m, t[1], t[2], S, t[3] - 0.4, S, col, 0.4, { Name = "Tour" })
+		block(m, t[1], t[2], S, t[3] - 1, S, col, 0.4, { Name = "Tour" })
 		block(m, t[1], t[2], S + 0.8, 0.6, S + 0.8, RGB(50, 54, 70), t[3] - 0.6, { Name = "Rebord" })
 		-- néons verticaux aux coins
 		for _, c in { { 1, 1 }, { 1, -1 }, { -1, 1 }, { -1, -1 } } do
@@ -580,7 +584,7 @@ local function buildGardens(map, spawns)
 	-- haies (h = 6 : presque trop hautes pour sauter -> on les contourne)
 	local hedges = {
 		-- { x, z, sx, sz }
-		{ -120, -90, 40, 3 }, { -76, -90, 20, 3 },             -- rangée 1 (trou en -95)
+		{ -121.5, -90, 37, 3 }, { -76, -90, 20, 3 },           -- rangée 1 (tunnel de slide en -98)
 		{ -88, -115, 44, 3 }, { -138, -115, 14, 3 },           -- rangée 2 (trou en -125)
 		{ -108, -132, 3, 26 },                                 -- verticale
 		{ -76, -132, 3, 20 },
@@ -628,9 +632,9 @@ function MapBuilder.BuildLobby(): Model
 	-- île
 	part(lobby, V3(120, 4, 92), at(0, -2, 0), RGB(120, 210, 80), { Name = "Sol" })
 	part(lobby, V3(124, 6, 96), at(0, -6.9, 0), RGB(150, 100, 60), { Name = "Terre", Sides = true })
-	part(lobby, V3(16, 0.3, 92), at(0, 0.15, 0), RGB(242, 214, 160), { Name = "Allee", Sides = false })
+	part(lobby, V3(16, 0.3, 90), at(0, 0.15, 0), RGB(242, 214, 160), { Name = "Allee", Sides = false })
 	-- clôtures
-	for _, f in { { V3(120, 2.5, 1), at(0, 1.25, -45.5) }, { V3(120, 2.5, 1), at(0, 1.25, 45.5) }, { V3(1, 2.5, 92), at(-59.5, 1.25, 0) }, { V3(1, 2.5, 92), at(59.5, 1.25, 0) } } do
+	for _, f in { { V3(120, 2.5, 1), at(0, 1.25, -45.5) }, { V3(120, 2.5, 1), at(0, 1.25, 45.5) }, { V3(1, 2.5, 90), at(-59.5, 1.25, 0) }, { V3(1, 2.5, 90), at(59.5, 1.25, 0) } } do
 		part(lobby, f[1], f[2], PAL.White, { Name = "Cloture" })
 	end
 
@@ -745,22 +749,97 @@ function MapBuilder.BuildLobby(): Model
 end
 
 -- =====================================================================
--- MAP
+-- ARÈNE GÉNÉRIQUE (sol + enceinte) pour les maps du dossier Maps/
 -- =====================================================================
-function MapBuilder.BuildMap(): Model
-	local existing = workspace:FindFirstChild("Map")
-	if existing then return existing end
+local function arena(map, half: number, ground: Color3, wall: Color3, neon: Color3, wallH: number?)
+	local g = folder(map, "Sol")
+	part(g, V3(half * 2, 4, half * 2), CF(0, -2, 0), ground, { Name = "Sol", Sides = false })
+	local walls = folder(map, "Enceinte")
+	local h = wallH or 36
+	for i, w in {
+		{ V3(half * 2 + 8, h, 4), CF(0, h / 2, -half - 2) }, { V3(half * 2 + 8, h, 4), CF(0, h / 2, half + 2) },
+		{ V3(4, h, half * 2), CF(-half - 2, h / 2, 0) }, { V3(4, h, half * 2), CF(half + 2, h / 2, 0) },
+	} do
+		part(walls, w[1], w[2], wall, { Name = "Mur" })
+		local ns = if i <= 2 then V3(w[1].X + 0.2, 0.8, w[1].Z + 0.2) else V3(w[1].X + 0.2, 0.7, w[1].Z - 0.6)
+		neonStrip(walls, ns, w[2] * CF(0, h / 2 + 0.4, 0), neon)
+	end
+	return g
+end
+
+-- Briques exposées aux modules de maps (server/Maps/*.luau)
+MapBuilder.H = {
+	part = part, block = block, folder = folder, slab = slab, railing = railing, pillar = pillar, jumpPad = jumpPad,
+	lamp = lamp, tree = tree, bench = bench, neonStrip = neonStrip, slideBlock = slideBlock, sign = sign,
+	spawnPoint = spawnPoint, studs = studs, arena = arena, PAL = PAL, RGB = RGB, V3 = V3, CF = CF, UI = UI,
+}
+
+-- =====================================================================
+-- REGISTRE DES MAPS (vote) - la Ville est intégrée, les autres viennent de server/Maps
+-- =====================================================================
+MapBuilder.Maps = {
+	{
+		Id = "ville", Name = "Ville", Order = 1, Clock = 15.2, Gradient = "cyan",
+		Icon = "Main/House/Blue House 1st Outline",
+		Description = "Toits, village, usine et jardins",
+		Build = function(_, map, spawns)
+			buildGround(map)
+			buildPlaza(map, spawns)
+			buildVillage(map, spawns)
+			buildRooftops(map, spawns)
+			buildIndustrial(map, spawns)
+			buildGardens(map, spawns)
+		end,
+	},
+}
+local mapsFolder = script:FindFirstChild("Maps")
+if mapsFolder then
+	for _, m in mapsFolder:GetChildren() do
+		if m:IsA("ModuleScript") then
+			local ok, def = pcall(require, m)
+			if ok and type(def) == "table" and def.Id then
+				table.insert(MapBuilder.Maps, def)
+			else
+				warn("[MapBuilder] map invalide : " .. m.Name, def)
+			end
+		end
+	end
+end
+table.sort(MapBuilder.Maps, function(a, b) return (a.Order or 99) < (b.Order or 99) end)
+
+function MapBuilder.GetMap(id: string?)
+	for _, m in MapBuilder.Maps do if m.Id == id then return m end end
+	return nil
+end
+
+--- Détruit la map courante et construit `id`. Retourne la définition chargée.
+function MapBuilder.LoadMap(id: string?)
+	local def = MapBuilder.GetMap(id) or MapBuilder.Maps[1]
+	local cur = workspace:FindFirstChild("Map")
+	if cur and cur:GetAttribute("MapId") == def.Id then return def end
+	if cur then cur:Destroy() end
 	local map = Instance.new("Model")
 	map.Name = "Map"
+	map:SetAttribute("MapId", def.Id)
 	local spawns = folder(map, "Spawns")
-	buildGround(map)
-	buildPlaza(map, spawns)
-	buildVillage(map, spawns)
-	buildRooftops(map, spawns)
-	buildIndustrial(map, spawns)
-	buildGardens(map, spawns)
+	def.Build(MapBuilder.H, map, spawns)
+	for _, p in map:GetDescendants() do
+		if p:IsA("BasePart") and CollectionService:HasTag(p, "SlideCeiling") then p.CollisionGroup = "SlideCeiling" end
+	end
 	map.Parent = workspace
-	return map
+	game:GetService("Lighting").ClockTime = def.Clock or 15.2
+	game:GetService("ReplicatedStorage"):SetAttribute("MapId", def.Id)
+	game:GetService("ReplicatedStorage"):SetAttribute("MapName", def.Name)
+	return def
+end
+
+--- Infos envoyées au client pour le vote (sans la fonction Build).
+function MapBuilder.Catalog()
+	local out = {}
+	for _, m in MapBuilder.Maps do
+		table.insert(out, { Id = m.Id, Name = m.Name, Description = m.Description, Icon = m.Icon, Gradient = m.Gradient })
+	end
+	return out
 end
 
 function MapBuilder.SetupCollisionGroups()
@@ -802,12 +881,9 @@ end
 function MapBuilder.Build()
 	MapBuilder.SetupCollisionGroups()
 	MapBuilder.SetupLighting()
-	local map = MapBuilder.BuildMap()
+	MapBuilder.LoadMap("ville")
+	local map = workspace:FindFirstChild("Map")
 	local lobby = MapBuilder.BuildLobby()
-	-- les plafonds d'une map réutilisée doivent aussi être dans le bon groupe
-	for _, p in CollectionService:GetTagged("SlideCeiling") do
-		if p:IsA("BasePart") then p.CollisionGroup = "SlideCeiling" end
-	end
 	if not MapBuilder.ShopPrompt then
 		MapBuilder.ShopPrompt = lobby:FindFirstChild("OpenShop", true)
 	end

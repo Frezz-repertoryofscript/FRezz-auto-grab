@@ -29,13 +29,24 @@ function Hud.Build(ctx)
 	end
 
 	-- ------------------------------------------------------------ minuteur
-	local top = root("Minuteur", Vector2.new(300, 120), UDim2.new(0.5, 0, 0, 4), Vector2.new(0.5, 0))
+	local top = root("Minuteur", Vector2.new(300, 176), UDim2.new(0.5, 0, 0, 4), Vector2.new(0.5, 0))
 	local box = UI.InsetBox(top, { Name = "Boite", Size = UDim2.fromOffset(210, 62), Position = UDim2.fromOffset(45, 22) })
 	local timerText, timerShadow = UI.ShadowText(box, "--:--", { Font = "Gotham", Max = 44, Size = UDim2.new(1, -16, 1, -8),
 		Stroke = RGB(8, 12, 14), Thickness = 3, ZIndex = 8 })
 	local pill = UI.Pill(top, "LOBBY", { Width = 190, Position = UDim2.fromOffset(150, 22), TextSize = 18 })
 	local subText = UI.Text(top, "", { Name = "Sous", Font = "Gotham", Size = UDim2.fromOffset(320, 26), Position = UDim2.fromOffset(150, 102),
 		Max = 20, Rich = true, Stroke = RGB(10, 12, 16), Thickness = 2.6 })
+
+	-- bouton VOTE (intermission) : rouvre la fenêtre de vote de map
+	local voteBtn = UI.Button(top, { Name = "BoutonVote", Theme = "blue", Size = Vector2.new(150, 46), Position = UDim2.fromOffset(150, 144),
+		Text = "VOTE", TextSize = 26, Icon = Icons.Get("Item/Location Pin/Location Pin 1st Outline") })
+	voteBtn.Visible = false
+	local voteBadge = UI.NotifBadge(voteBtn)
+	Motion.PulseScale(voteBadge.Pulse)
+	Motion.BindButton(voteBtn, 1.05, ctx.Sons, function() if ctx.OpenVote then ctx.OpenVote() end end)
+	function api.SetVoteVisible(v: boolean)
+		voteBtn.Visible = v
+	end
 
 	function api.SetTimer(text: string, urgent: boolean?)
 		timerText.Text = text

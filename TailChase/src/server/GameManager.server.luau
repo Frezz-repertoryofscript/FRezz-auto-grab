@@ -10,6 +10,7 @@
 ]]
 
 local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
@@ -40,6 +41,7 @@ MovementService.Init()
 AdminService.Init()
 
 ReplicatedStorage:SetAttribute("MinPlayers", MIN_PLAYERS)
+ReplicatedStorage:SetAttribute("MapCatalog", HttpService:JSONEncode(MapBuilder.Catalog()))
 
 local function now(): number
 	return workspace:GetServerTimeNow()
@@ -85,6 +87,68 @@ local function randomMapSpawn(): CFrame
 	local s = spawns[math.random(1, #spawns)]
 	return s.CFrame + Vector3.new(0, 3.5, 0)
 end
+
+-- =====================================================================
+-- VOTE DE MAP (pendant l'intermission)
+-- Attributes : VoteOptions (JSON de N ids), Votes_<id> (compte). Remote MapVote(id) validé ici.
+-- =====================================================================
+local votes: { [Player]: string } = {}
+local voteOptions: { string } = {}
+
+local function clearVote()
+	for _, id in voteOptions do ReplicatedStorage:SetAttribute("Votes_" .. id, nil) end
+	table.clear(votes)
+	table.clear(voteOptions)
+	ReplicatedStorage:SetAttribute("VoteOptions", nil)
+end
+
+local function startVote()
+	clearVote()
+	local pool = {}
+	for _, m in MapBuilder.Maps do table.insert(pool, m.Id) end
+	shuffle(pool)
+	for i = 1, math.min(Config.VoteOptions, #pool) do
+		table.insert(voteOptions, pool[i])
+		ReplicatedStorage:SetAttribute("Votes_" .. pool[i], 0)
+	end
+	ReplicatedStorage:SetAttribute("VoteOptions", HttpService:JSONEncode(voteOptions))
+end
+
+local function recount()
+	local counts = {}
+	for _, id in voteOptions do counts[id] = 0 end
+	for p, id in votes do
+		if p.Parent and counts[id] then counts[id] += 1 end
+	end
+	for id, n in counts do ReplicatedStorage:SetAttribute("Votes_" .. id, n) end
+	return counts
+end
+
+--- Termine le vote et retourne la map gagnante (égalité : tirage au sort ; pas de vote : map au hasard).
+local function finishVote(): string
+	local pool = if #voteOptions > 0 then table.clone(voteOptions) else {}
+	if #pool == 0 then
+		for _, m in MapBuilder.Maps do table.insert(pool, m.Id) end
+	end
+	local counts = recount()
+	local best, bestN = {}, -1
+	for _, id in pool do
+		local n = counts[id] or 0
+		if n > bestN then best, bestN = { id }, n elseif n == bestN then table.insert(best, id) end
+	end
+	clearVote()
+	return best[math.random(1, #best)]
+end
+
+Remotes.MapVote.OnServerEvent:Connect(function(player: Player, id: any)
+	if typeof(id) ~= "string" or not table.find(voteOptions, id) then return end
+	if ReplicatedStorage:GetAttribute("GameState") ~= S.Intermission then return end
+	votes[player] = id
+	recount()
+end)
+Players.PlayerRemoving:Connect(function(p)
+	if votes[p] then votes[p] = nil; recount() end
+end)
 
 -- =====================================================================
 -- MANCHE
@@ -228,7 +292,8 @@ local function endRound()
 		Remotes.Results:FireClient(p, { Rows = rows, Mine = m, Headline = headline })
 	end
 
-	-- retour au lobby
+	-- retour au lobby (éclairage de jour, même après une map de nuit)
+	game:GetService("Lighting").ClockTime = 15.2
 	for p in r.Players do
 		if p.Parent then
 			RoleService.SetFrozen(p, false)
@@ -245,13 +310,17 @@ local function endRound()
 	task.wait(Config.ResultsTime)
 end
 
-local function runRound()
+local function runRound(mapId: string)
 	local forced = Control.ForceStart
 	Control.ForceStart = false
 	Control.ForceEnd = false
 	local participants = shuffle(readyPlayers())
 	-- lancement admin : on accepte une manche solo (sans chasseur) pour tester
 	if #participants < (if forced then 1 else MIN_PLAYERS) then return end
+
+	-- construit la map gagnante du vote (détruit l'ancienne)
+	local def = MapBuilder.LoadMap(mapId)
+	notifyAll(("Map : %s !"):format(def.Name), "go")
 
 	local hunterCount = if #participants > Config.ExtraHunterThreshold then 2 else 1
 	if #participants < 2 then hunterCount = 0 end -- (lancement admin en solo : manche sans chasseur)
@@ -411,6 +480,7 @@ while true do
 
 	local cancelled = false
 	if not Control.ForceStart then
+		startVote()
 		setState(S.Intermission, Config.IntermissionTime)
 		local t0 = os.clock()
 		while os.clock() - t0 < Config.IntermissionTime and not Control.ForceStart do
@@ -424,9 +494,11 @@ while true do
 		end
 	end
 	if cancelled then
+		clearVote()
 		notifyAll("Pas assez de joueurs, retour à l'attente.", "info")
 	else
-		local ok, err = pcall(runRound)
+		local mapId = finishVote()
+		local ok, err = pcall(runRound, mapId)
 		if not ok then
 			warn("[GameManager] erreur pendant la manche :", err)
 			-- sécurité : on remet tout le monde au lobby

@@ -27,8 +27,8 @@ function LobbyMenu.Build(ctx)
 		return UI.Button(panel, { Name = name, Theme = theme, Size = Vector2.new(106, 106), Position = UDim2.fromOffset(x, y),
 			Text = text, IconLayout = "Big", Icon = Icons.Get(icon), TextSize = size or 28 })
 	end
-	local shop = tile("Shop", "red", "Shop", "Main/Shopping Cart/Red Shopping Cart 1st Outline", 53, 125)
-	local inv = tile("Inventaire", "blue", "Sac", "Item/Backpack/Backpack 1st Outline", 167, 125)
+	local shop = tile("Shop", "red", "Shop", "Main/Shopping Bag/Red Shopping Bag 1st Outline", 53, 125)
+	local inv = tile("Inventaire", "blue", "Objets", "Item/Chest/Chest 1st Outline", 167, 125, 26)
 	local tuto = tile("Tuto", "yellow", "Tuto", "Item/Book/Yellow Book 1st Outline", 53, 239)
 	local admin = tile("Admin", "purple", "Admin", "Item/Hammer/Hammer 1st Outline", 167, 239)
 

@@ -17,6 +17,24 @@ B.pump(1)
 local map = B.workspace:FindFirstChild("Map")
 local lobby = B.workspace:FindFirstChild("Lobby")
 print("Map:", map ~= nil, "Lobby:", lobby ~= nil, "instances:", M.count.total, "parts:", M.count.Part, "textures:", M.count.Texture)
+local zf = M.zfight(map)
+for _, l in M.zfight(lobby) do table.insert(zf, "LOBBY " .. l) end
+print("Z-FIGHTING:", #zf)
+for i, l in zf do if i <= 400 then print("  ZF", l) end end
+-- toutes les maps : construction + z-fighting + spawns
+local MB = B.require(B.SSS.MapBuilder)
+for _, def in MB.Maps do
+	MB.LoadMap(def.Id)
+	local m = B.workspace:FindFirstChild("Map")
+	local zfm = M.zfight(m)
+	local n = 0
+	for _, d in m:GetDescendants() do if d.ClassName == "Part" then n += 1 end end
+	print(("MAP %-12s parts=%d spawns=%d pads=%d tunnels=%d zfight=%d"):format(def.Id, n, #m.Spawns:GetChildren(),
+		#B.services.CollectionService:GetTagged("JumpPad"), #m:FindFirstChild("TunnelSlide", true).Parent:GetChildren(), #zfm))
+	for i, l in zfm do if i <= 40 then print("   ZF", l) end end
+end
+MB.LoadMap("ville")
+map = B.workspace:FindFirstChild("Map")
 print("Spawns map:", #map.Spawns:GetChildren(), "lobby:", #lobby.Spawns:GetChildren())
 print("Tail Alice:", a.Character:FindFirstChild("Tail") ~= nil, "role", a:GetAttribute("Role"))
 print("State:", B.RS:GetAttribute("GameState"))
@@ -25,8 +43,15 @@ print("State:", B.RS:GetAttribute("GameState"))
 for _, p in { a, b, c } do p:SetAttribute("Ready", true) end
 B.pump(2)
 print("State après ready:", B.RS:GetAttribute("GameState"))
+local Http = B.services.HttpService
+local opts = Http:JSONDecode(B.RS:GetAttribute("VoteOptions"))
+print("VOTE options:", table.concat(opts, ","))
+rem.MapVote.OnServerEvent:Fire(a, opts[2]); rem.MapVote.OnServerEvent:Fire(b, opts[2]); rem.MapVote.OnServerEvent:Fire(c, opts[1])
+rem.MapVote.OnServerEvent:Fire(c, "inexistante")
+print("votes:", B.RS:GetAttribute("Votes_" .. opts[1]), B.RS:GetAttribute("Votes_" .. opts[2]))
 B.pump(21)
 print("State:", B.RS:GetAttribute("GameState"), "roles:", roles.Alice, roles.Bob, roles.Carl)
+print("MAP gagnante:", B.RS:GetAttribute("MapId"), "attendue:", opts[2], "| Map dans workspace:", B.workspace.Map:GetAttribute("MapId"), "| VoteOptions effacé:", B.RS:GetAttribute("VoteOptions") == nil)
 B.pump(5.5)
 print("State:", B.RS:GetAttribute("GameState"), "frozen alice", a:GetAttribute("Frozen"))
 B.pump(4)
