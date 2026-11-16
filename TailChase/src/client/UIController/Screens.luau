@@ -140,4 +140,33 @@ function Screens.BuildRoleScreen(ctx)
 	return api
 end
 
+--[[ Bannière de récompense (archétype G du kit) : panneau stud doré + soleil qui tourne, titre extrudé,
+	carte de récompense (queue arrachée, "+10" pièces). DisplayOrder 40, jamais masquée par les menus. ]]
+function Screens.BuildBanner(ctx)
+	local UI, Icons, Motion = ctx.UI, ctx.Icons, ctx.Motion
+	local gui = UI.ScreenGui("Recompenses", 40, { Parent = ctx.PlayerGui, Menu = false })
+	local banner = UI.StudPanel(gui, { Name = "Banniere", Size = UDim2.fromOffset(420, 210), Position = UDim2.new(0.5, 0, 0, 96),
+		AnchorPoint = Vector2.new(0.5, 0), Gradient = "gold", ZIndex = 2 })
+	banner.Visible = false
+	banner.ClipsDescendants = true
+	UI.new("UIScale", { Name = "WindowScale" }, banner)
+	local sun = UI.Sunburst(banner, 420, { Position = UDim2.fromScale(0.5, 0.62), Transparency = 0.55, ZIndex = 3 })
+	sun.Name = "Soleil"
+	local title, titleShadow = UI.ShadowText(banner, "Queue prise !", { Max = 40, Size = UDim2.new(1, -20, 0, 50),
+		Position = UDim2.new(0.5, 0, 0, 38), Stroke = RGB(70, 34, 0), Thickness = 3.5, ZIndex = 10 })
+	local slot = UI.ItemSlot(banner, { Name = "Carte", Button = false, Size = Vector2.new(112, 120), Position = UDim2.new(0.5, 0, 0, 74),
+		AnchorPoint = Vector2.new(0.5, 0), Title = "Classique", Tag = "+10", TagColor = UI.Colors.TagGold, ZIndex = 5 })
+	local api = { Gui = gui }
+	function api.Show(text: string, iconPath: string, name: string, tag: string)
+		title.Text, titleShadow.Text = text, text
+		slot.Icone.Image = Icons.Get(iconPath)
+		slot.Icone.Rotation = -10
+		slot.Nom.Text = name
+		slot.Etiquette.Text = tag
+		slot.Etiquette.Visible = true
+		task.spawn(Motion.ShowBanner, banner, 2.2, ctx.Sons)
+	end
+	return api
+end
+
 return Screens

@@ -18,6 +18,8 @@
         "DataUpdated": { "$className": "RemoteEvent" },
         "SetReady": { "$className": "RemoteEvent" },
         "OpenMenu": { "$className": "RemoteEvent" },
+        "TutorialDone": { "$className": "RemoteEvent" },
+        "AdminCommand": { "$className": "RemoteFunction" },
         "ShopPurchase": { "$className": "RemoteFunction" },
         "ShopEquip": { "$className": "RemoteFunction" },
         "GetProfile": { "$className": "RemoteFunction" }

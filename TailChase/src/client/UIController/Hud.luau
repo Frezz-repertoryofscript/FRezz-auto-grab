@@ -88,9 +88,19 @@ function Hud.Build(ctx)
 	local stats = root("Stats", Vector2.new(320, 110), UDim2.new(0, 12, 1, -12), Vector2.new(0, 1))
 	UI.Image(stats, Icons.Get("Currency/Coin/Golden Coin 1st Outline"), { Name = "Piece", Size = UDim2.fromOffset(46, 46),
 		Position = UDim2.fromOffset(24, 28), Rotation = -10, ZIndex = 3 })
-	local moneyHolder = UI.new("Frame", { Name = "Argent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
+	-- ligne argent (comme la référence) : montant lime + bouton « + » glossy vert qui ouvre le shop
+	local row = UI.new("Frame", { Name = "LigneArgent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
 		Size = UDim2.fromOffset(0, 40), Position = UDim2.fromOffset(52, 8) }, stats)
+	UI.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8),
+		VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }, row)
+	local moneyHolder = UI.new("Frame", { Name = "Argent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
+		Size = UDim2.fromOffset(0, 40), LayoutOrder = 1 }, row)
 	local moneyText, moneyShadow = UI.MoneyText(moneyHolder, "0")
+	local plusSlot = UI.new("Frame", { Name = "EmplacementPlus", BackgroundTransparency = 1, Size = UDim2.fromOffset(39, 38), LayoutOrder = 2 }, row)
+	local plus = UI.Button(plusSlot, { Name = "BoutonPlus", Style = "Glossy", Theme = "cash", Size = Vector2.new(39, 38), Studs = false })
+	UI.OutlinedIcon(plus, UI.Assets.PlusBlack, UI.Assets.PlusWhite, { Size = UDim2.fromOffset(15, 15), Position = UDim2.fromOffset(19, 17), ZIndex = 4 })
+	Motion.BindButton(plus, 1.06, ctx.Sons, function() if ctx.OpenShop then ctx.OpenShop() end end)
+	api.PlusButton = plus
 	UI.Image(stats, Icons.Get("Exclusive/Trail/Red Trail 1st Outline"), { Name = "QueueIcone", Size = UDim2.fromOffset(40, 40),
 		Position = UDim2.fromOffset(24, 80), Rotation = -12, ZIndex = 3 })
 	local tailsText, tailsShadow = UI.ShadowText(stats, "Queues prises : 0", { Font = "Gotham", Max = 24, Size = UDim2.fromOffset(260, 30),

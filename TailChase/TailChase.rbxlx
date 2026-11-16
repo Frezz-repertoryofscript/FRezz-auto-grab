@@ -1,4 +1,4 @@
-<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="ReplicatedStorage" referent="RBX0000001D"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">StudUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
+<roblox xmlns:xmime="http://www.w3.org/2005/05/xmlmime" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4"><Item class="ReplicatedStorage" referent="RBX0000001F"><Properties><string name="Name">ReplicatedStorage</string></Properties><Item class="ModuleScript" referent="RBX00000001"><Properties><string name="Name">StudUI</string><ProtectedString name="Source"><![CDATA[--!nonstrict
 --[[
 	StudUI - Stud UI Clean Roblox kit for Roblox (ModuleScript)
 	=========================================================
@@ -3734,14 +3734,26 @@ local Config = {}
 -- =====================================================================
 -- BOUCLE DE MANCHE
 -- =====================================================================
-Config.MinPlayers = 4            -- joueurs "prêts" minimum pour lancer l'intermission
-Config.StudioMinPlayers = 1      -- en Studio : 1 = manche solo sans chasseur (test du mouvement), 2+ = Test > Local Server
+Config.MinPlayers = 2            -- joueurs "prêts" minimum pour lancer l'intermission (1 chasseur + 1 participant)
+Config.StudioMinPlayers = 2      -- en Studio aussi (Test > Local Server 2 joueurs). Pour tester seul : panel admin > LANCER
 Config.IntermissionTime = 20     -- secondes
 Config.CountdownTime = 5         -- décompte avant le départ (tout le monde figé)
 Config.HunterReleaseDelay = 3    -- avance des participants : les chasseurs partent X s après le GO
 Config.RoundTime = 180           -- 3 minutes
 Config.ResultsTime = 10
 Config.ExtraHunterThreshold = 10 -- au-delà de ce nombre de joueurs : 2 chasseurs
+
+-- =====================================================================
+-- ADMIN (panel « Admin » du lobby)
+-- Admins : en Studio tout le monde, sinon le créateur du jeu (ou rang >= AdminGroupRank du groupe propriétaire)
+-- + les UserIds listés ici.
+-- =====================================================================
+Config.Admins = {
+	-- 123456789,
+}
+Config.AdminGroupRank = 254
+Config.AdminShortRoundTime = 60   -- bouton « MANCHE COURTE »
+Config.AdminCoinsGift = 1000      -- bouton « +1000 PIÈCES »
 
 -- =====================================================================
 -- CAPTURE (validée côté serveur)
@@ -4096,7 +4108,100 @@ function TailBuilder.Remove(character: Model)
 end
 
 return TailBuilder
-]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX0000001C"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX00000010"><Properties><string name="Name">RoundState</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000011"><Properties><string name="Name">Notify</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000012"><Properties><string name="Name">RoleAssigned</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000013"><Properties><string name="Name">Captured</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000014"><Properties><string name="Name">MoveAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000015"><Properties><string name="Name">Results</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000016"><Properties><string name="Name">DataUpdated</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000017"><Properties><string name="Name">SetReady</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000018"><Properties><string name="Name">OpenMenu</string></Properties></Item><Item class="RemoteFunction" referent="RBX00000019"><Properties><string name="Name">ShopPurchase</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001A"><Properties><string name="Name">ShopEquip</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001B"><Properties><string name="Name">GetProfile</string></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000026"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX0000001E"><Properties><string name="Name">CoinService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item></Item><Item class="Folder" referent="RBX0000001E"><Properties><string name="Name">Remotes</string></Properties><Item class="RemoteEvent" referent="RBX00000010"><Properties><string name="Name">RoundState</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000011"><Properties><string name="Name">Notify</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000012"><Properties><string name="Name">RoleAssigned</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000013"><Properties><string name="Name">Captured</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000014"><Properties><string name="Name">MoveAction</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000015"><Properties><string name="Name">Results</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000016"><Properties><string name="Name">DataUpdated</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000017"><Properties><string name="Name">SetReady</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000018"><Properties><string name="Name">OpenMenu</string></Properties></Item><Item class="RemoteEvent" referent="RBX00000019"><Properties><string name="Name">TutorialDone</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001A"><Properties><string name="Name">AdminCommand</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001B"><Properties><string name="Name">ShopPurchase</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001C"><Properties><string name="Name">ShopEquip</string></Properties></Item><Item class="RemoteFunction" referent="RBX0000001D"><Properties><string name="Name">GetProfile</string></Properties></Item></Item></Item><Item class="ServerScriptService" referent="RBX00000029"><Properties><string name="Name">ServerScriptService</string></Properties><Item class="ModuleScript" referent="RBX00000020"><Properties><string name="Name">AdminService</string><ProtectedString name="Source"><![CDATA[--[[
+	AdminService - commandes du panel admin (RemoteFunction Remotes.AdminCommand), vérifiées côté serveur.
+	Qui est admin : tout le monde en Studio ; en ligne, le créateur du jeu (ou rang >= Config.AdminGroupRank si le jeu
+	appartient à un groupe) + Config.Admins. Player Attribute "IsAdmin" -> le client affiche la tuile Admin.
+
+	Commandes :
+		"Start"      lance la manche tout de suite (tout le monde devient prêt, intermission sautée)
+		"End"        termine la manche en cours (résultats normaux)
+		"AllReady"   met tous les joueurs « prêts »
+		"Coins"      +Config.AdminCoinsGift pièces pour l'admin
+		"ShortRound" bascule la durée de manche : Config.RoundTime <-> Config.AdminShortRoundTime
+		"ResetTuto"  rejoue le tutoriel au prochain affichage
+]]
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+
+local Config = require(ReplicatedStorage.Shared.Config)
+local DataService = require(script.Parent.DataService)
+local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+
+local AdminService = {}
+
+-- état lu par GameManager
+AdminService.Control = {
+	ForceStart = false,
+	ForceEnd = false,
+	ShortRound = false,
+}
+
+function AdminService.IsAdmin(player: Player): boolean
+	if RunService:IsStudio() then return true end
+	if table.find(Config.Admins, player.UserId) then return true end
+	if game.CreatorType == Enum.CreatorType.User then
+		return player.UserId == game.CreatorId
+	end
+	local ok, rank = pcall(player.GetRankInGroup, player, game.CreatorId)
+	return ok and rank >= Config.AdminGroupRank
+end
+
+function AdminService.RoundTime(): number
+	return if AdminService.Control.ShortRound then Config.AdminShortRoundTime else Config.RoundTime
+end
+
+local function reply(ok: boolean, msg: string)
+	return { Ok = ok, Message = msg, ShortRound = AdminService.Control.ShortRound }
+end
+
+local function run(player: Player, cmd: any)
+	if not AdminService.IsAdmin(player) then return reply(false, "Accès refusé") end
+	if typeof(cmd) ~= "string" then return reply(false, "Commande invalide") end
+	local state = ReplicatedStorage:GetAttribute("GameState")
+	local S = Config.States
+	if cmd == "Start" then
+		if state == S.Round or state == S.Countdown then return reply(false, "Une manche est déjà en cours") end
+		for _, p in Players:GetPlayers() do p:SetAttribute("Ready", true) end
+		AdminService.Control.ForceStart = true
+		return reply(true, "Lancement de la manche !")
+	elseif cmd == "End" then
+		if state ~= S.Round and state ~= S.Countdown then return reply(false, "Aucune manche en cours") end
+		AdminService.Control.ForceEnd = true
+		return reply(true, "Fin de manche demandée")
+	elseif cmd == "AllReady" then
+		for _, p in Players:GetPlayers() do p:SetAttribute("Ready", true) end
+		return reply(true, "Tout le monde est prêt")
+	elseif cmd == "Coins" then
+		DataService.AddCoins(player, Config.AdminCoinsGift)
+		return reply(true, "+" .. Config.AdminCoinsGift .. " pièces")
+	elseif cmd == "ShortRound" then
+		AdminService.Control.ShortRound = not AdminService.Control.ShortRound
+		return reply(true, if AdminService.Control.ShortRound then ("Manches de %d s"):format(Config.AdminShortRoundTime) else ("Manches de %d s"):format(Config.RoundTime))
+	elseif cmd == "ResetTuto" then
+		local d = DataService.Get(player)
+		if d then
+			d.TutorialDone = false
+			DataService.Push(player)
+		end
+		return reply(true, "Tutoriel réinitialisé")
+	end
+	return reply(false, "Commande inconnue")
+end
+
+function AdminService.Init()
+	Remotes.AdminCommand.OnServerInvoke = run
+	local function tag(p: Player)
+		task.spawn(function() p:SetAttribute("IsAdmin", AdminService.IsAdmin(p)) end)
+	end
+	Players.PlayerAdded:Connect(tag)
+	for _, p in Players:GetPlayers() do tag(p) end
+end
+
+return AdminService
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000021"><Properties><string name="Name">CoinService</string><ProtectedString name="Source"><![CDATA[--[[
 	CoinService - calcule et verse les pièces de fin de manche.
 		survie        : 1 pièce / Config.Coins.SurvivalSecondsPerCoin secondes
 		queues prises : Config.Coins.PerTail par queue
@@ -4140,7 +4245,7 @@ function CoinService.Reward(player: Player, survivalSeconds: number, tails: numb
 end
 
 return CoinService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000001F"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000022"><Properties><string name="Name">DataService</string><ProtectedString name="Source"><![CDATA[--[[
 	DataService - sauvegarde DataStore des profils (pièces, achats, équipements, stats).
 	  * chargement / sauvegarde avec pcall + retries + backoff
 	  * sauvegarde auto toutes les Config.Data.AutoSaveInterval s, à la sortie du joueur et à la fermeture (BindToClose)
@@ -4190,6 +4295,7 @@ local function template()
 			Capture = Cosmetics.DefaultFor("Capture"),
 		},
 		Stats = { Rounds = 0, TailsTaken = 0, BestSurvival = 0, Wins = 0, CoinsEarned = 0 },
+		TutorialDone = false,
 	}
 end
 
@@ -4251,6 +4357,7 @@ function DataService.Snapshot(player: Player)
 		Owned = table.clone(d.Owned),
 		Equipped = table.clone(d.Equipped),
 		Stats = table.clone(d.Stats),
+		TutorialDone = d.TutorialDone == true,
 	}
 end
 
@@ -4417,6 +4524,14 @@ function DataService.Init()
 		end
 	end)
 
+	Remotes.TutorialDone.OnServerEvent:Connect(function(player)
+		local d = DataService.Profiles[player]
+		if d and not d.TutorialDone then
+			d.TutorialDone = true
+			DataService.Push(player)
+		end
+	end)
+
 	Remotes.GetProfile.OnServerInvoke = function(player)
 		DataService.Wait(player, 10)
 		return DataService.Snapshot(player)
@@ -4426,7 +4541,7 @@ end
 DataService.RefreshLeaderboard = refreshLeaderboard
 
 return DataService
-]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000020"><Properties><string name="Name">GameManager</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="Script" referent="RBX00000023"><Properties><string name="Name">GameManager</string><ProtectedString name="Source"><![CDATA[--[[
 	GameManager - point d'entrée serveur de TAIL CHASE.
 	Construit la map, initialise les services et fait tourner la boucle :
 		Lobby -> Intermission (20 s, min joueurs prêts) -> Countdown (5 s, figés) -> Round (3 min) -> Results (10 s) -> Lobby
@@ -4451,6 +4566,8 @@ local TailService = require(script.Parent.TailService)
 local RoleService = require(script.Parent.RoleService)
 local CoinService = require(script.Parent.CoinService)
 local MovementService = require(script.Parent.MovementService)
+local AdminService = require(script.Parent.AdminService)
+local Control = AdminService.Control
 
 local S = Config.States
 local MIN_PLAYERS = if RunService:IsStudio() then Config.StudioMinPlayers else Config.MinPlayers
@@ -4463,6 +4580,7 @@ DataService.Init()
 ShopService.Init()
 TailService.Init()
 MovementService.Init()
+AdminService.Init()
 
 ReplicatedStorage:SetAttribute("MinPlayers", MIN_PLAYERS)
 
@@ -4671,11 +4789,15 @@ local function endRound()
 end
 
 local function runRound()
+	local forced = Control.ForceStart
+	Control.ForceStart = false
+	Control.ForceEnd = false
 	local participants = shuffle(readyPlayers())
-	if #participants < math.min(2, MIN_PLAYERS) then return end
+	-- lancement admin : on accepte une manche solo (sans chasseur) pour tester
+	if #participants < (if forced then 1 else MIN_PLAYERS) then return end
 
 	local hunterCount = if #participants > Config.ExtraHunterThreshold then 2 else 1
-	if #participants < 2 then hunterCount = 0 end -- (Studio solo : manche sans chasseur pour tester le mouvement)
+	if #participants < 2 then hunterCount = 0 end -- (lancement admin en solo : manche sans chasseur)
 	local spawns = shuffle(MapBuilder.GetMapSpawns())
 	local r: Round = { Players = {}, GoTime = 0, Active = true, LastCaptured = nil, Released = false }
 	round = r
@@ -4700,7 +4822,8 @@ local function runRound()
 	for p, d in r.Players do
 		if d.Role == "Runner" and p.Parent then RoleService.SetFrozen(p, false) end
 	end
-	setState(S.Round, Config.RoundTime)
+	local roundTime = AdminService.RoundTime()
+	setState(S.Round, roundTime)
 	notifyAll("GO ! Fuyez !", "go")
 	task.delay(Config.HunterReleaseDelay, function()
 		if round ~= r or not r.Active then return end
@@ -4711,8 +4834,13 @@ local function runRound()
 		notifyAll("Les chasseurs sont lâchés !", "hunter")
 	end)
 
-	local endsAt = os.clock() + Config.RoundTime
+	local endsAt = os.clock() + roundTime
 	while r.Active and os.clock() < endsAt do
+		if Control.ForceEnd then
+			Control.ForceEnd = false
+			notifyAll("Manche terminée par un admin", "info")
+			break
+		end
 		checkCaptures()
 		local runners, hunters = countRoles()
 		if runners == 0 and hunterCount > 0 then break end
@@ -4822,18 +4950,20 @@ while true do
 	repeat
 		ReplicatedStorage:SetAttribute("ReadyCount", #readyPlayers())
 		task.wait(1)
-	until #readyPlayers() >= MIN_PLAYERS
+	until #readyPlayers() >= MIN_PLAYERS or Control.ForceStart
 
-	setState(S.Intermission, Config.IntermissionTime)
-	local t0 = os.clock()
 	local cancelled = false
-	while os.clock() - t0 < Config.IntermissionTime do
-		task.wait(0.25)
-		local n = #readyPlayers()
-		ReplicatedStorage:SetAttribute("ReadyCount", n)
-		if n < MIN_PLAYERS then
-			cancelled = true
-			break
+	if not Control.ForceStart then
+		setState(S.Intermission, Config.IntermissionTime)
+		local t0 = os.clock()
+		while os.clock() - t0 < Config.IntermissionTime and not Control.ForceStart do
+			task.wait(0.25)
+			local n = #readyPlayers()
+			ReplicatedStorage:SetAttribute("ReadyCount", n)
+			if n < MIN_PLAYERS and not Control.ForceStart then
+				cancelled = true
+				break
+			end
 		end
 	end
 	if cancelled then
@@ -4852,7 +4982,7 @@ while true do
 		end
 	end
 end
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000021"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000024"><Properties><string name="Name">MapBuilder</string><ProtectedString name="Source"><![CDATA[--[[
 	MapBuilder - génère la map studded (≈300x300) et le lobby au démarrage du serveur.
 
 	Pourquoi généré par code : le projet est livré en fichiers Rojo (pas de .rbxl). Si Workspace contient déjà un
@@ -5693,7 +5823,7 @@ function MapBuilder.GetLobbySpawn(): CFrame
 end
 
 return MapBuilder
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000022"><Properties><string name="Name">MovementService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000025"><Properties><string name="Name">MovementService</string><ProtectedString name="Source"><![CDATA[--[[
 	MovementService - validation serveur du dash et du slide.
 	Le client applique la physique tout de suite (réactivité) et prévient le serveur via Remotes.MoveAction :
 		"Dash"        -> cooldown vérifié (Config.DashCooldown - tolérance). Refusé => Attribute "DashRejected" (le client se corrige).
@@ -5771,7 +5901,7 @@ function MovementService.Init()
 end
 
 return MovementService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000023"><Properties><string name="Name">RoleService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000026"><Properties><string name="Name">RoleService</string><ProtectedString name="Source"><![CDATA[--[[
 	RoleService - rôle de chaque joueur et visuels associés.
 	Rôles (Player Attribute "Role") :
 		"Lobby"   dans le lobby (queue cosmétique visible pour montrer son skin)
@@ -5880,7 +6010,7 @@ function RoleService.ApplyFreeze(player: Player)
 end
 
 return RoleService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000024"><Properties><string name="Name">ShopService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000027"><Properties><string name="Name">ShopService</string><ProtectedString name="Source"><![CDATA[--[[
 	ShopService - achats et équipement des cosmétiques (validés côté serveur).
 	RemoteFunctions :
 		ShopPurchase(itemId) -> { Ok, Message, Profile }
@@ -5958,7 +6088,7 @@ function ShopService.Init()
 end
 
 return ShopService
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000025"><Properties><string name="Name">TailService</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000028"><Properties><string name="Name">TailService</string><ProtectedString name="Source"><![CDATA[--[[
 	TailService - queues des participants (attache / retrait / skin équipé).
 	La queue est construite par Shared.TailBuilder ; le balancement est animé côté client (EffectsController).
 ]]
@@ -6009,7 +6139,7 @@ function TailService.Init()
 end
 
 return TailService
-]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX00000031"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX00000030"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX00000027"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item></Item><Item class="StarterPlayer" referent="RBX00000036"><Properties><string name="Name">StarterPlayer</string><float name="CharacterWalkSpeed">20</float><float name="CharacterJumpPower">50</float><bool name="CharacterUseJumpPower">true</bool><bool name="EnableMouseLockOption">false</bool></Properties><Item class="StarterPlayerScripts" referent="RBX00000035"><Properties><string name="Name">StarterPlayerScripts</string></Properties><Item class="LocalScript" referent="RBX0000002A"><Properties><string name="Name">AnimationController</string><ProtectedString name="Source"><![CDATA[--[[
 	AnimationController - animations procédurales (R15) pour TOUS les personnages, calculées localement.
 	Aucun ID d'animation n'est nécessaire : on écrit Motor6D.Transform à chaque frame (après l'Animator).
 
@@ -6281,7 +6411,7 @@ Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player)
 	if hunter and hunter.Character then playAction(hunter.Character, "Rip", 0.55) end
 	if runner and runner.Character then playAction(runner.Character, "Flinch", 0.45) end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000028"><Properties><string name="Name">EffectsController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000002B"><Properties><string name="Name">EffectsController</string><ProtectedString name="Source"><![CDATA[--[[
 	EffectsController - "juice" côté client (aucune logique de jeu ici).
 		* balancement procédural des queues de tous les personnages (C0 des Joints)
 		* traînée de dash (skin équipé, Attribute "TrailSkin") + élargissement bref du FOV pour le joueur local
@@ -6632,7 +6762,7 @@ end
 ReplicatedStorage:GetAttributeChangedSignal("GameState"):Connect(updateMusic)
 player:GetAttributeChangedSignal("Role"):Connect(updateMusic)
 updateMusic()
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000029"><Properties><string name="Name">MovementController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000002C"><Properties><string name="Name">MovementController</string><ProtectedString name="Source"><![CDATA[--[[
 	MovementController - dash, slide et jump pads du joueur local.
 		Dash  : Q / Shift / bouton mobile / manette X  -> impulsion horizontale, cooldown Config.DashCooldown
 		Slide : C / Ctrl  / bouton mobile / manette Y  -> glissade qui conserve l'élan ; le personnage passe dans le
@@ -6917,7 +7047,7 @@ ContextActionService:BindActionAtPriority("TC_Slide", onAction, false, Enum.Cont
 Signals.Connect("MobileAction", function(name: string)
 	if name == "Dash" then dash() elseif name == "Slide" then slide() end
 end)
-]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX0000002F"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="LocalScript" referent="RBX00000034"><Properties><string name="Name">UIController</string><ProtectedString name="Source"><![CDATA[--[[
 	UIController - construit TOUTE l'interface avec le kit StudUI (une seule fois, ScreenGuis ResetOnSpawn = false)
 	et la branche aux Remotes / Attributes. Animations et sons via StudMotion.
 
@@ -6947,6 +7077,8 @@ local LobbyMenu = require(script.LobbyMenu)
 local Collection = require(script.Collection)
 local Results = require(script.Results)
 local Screens = require(script.Screens)
+local AdminPanel = require(script.AdminPanel)
+local Tutorial = require(script.Tutorial)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -6969,7 +7101,8 @@ local ctx = {
 -- =====================================================================
 -- PROFIL (défini avant les builders : les fenêtres l'utilisent dès leur construction)
 -- =====================================================================
-local hud, shop, inventory
+local hud, shop, inventory, lobbyMenu, tutorial
+local tutoShown = false
 function ctx.GetProfile() return profile end
 function ctx.SetProfile(p)
 	if not p then return end
@@ -6977,6 +7110,12 @@ function ctx.SetProfile(p)
 	if hud then hud.SetCoins(p.Coins) end
 	if shop then shop.Refresh(p) end
 	if inventory then inventory.Refresh(p) end
+	if lobbyMenu then lobbyMenu.SetProfile(p) end
+	-- tutoriel automatique au tout premier passage
+	if tutorial and not p.TutorialDone and not tutoShown then
+		tutoShown = true
+		task.delay(1.5, function() if not ctx.InRound() then tutorial.Open() end end)
+	end
 end
 
 hud = Hud.Build(ctx)
@@ -6985,10 +7124,27 @@ local roleScreen = Screens.BuildRoleScreen(ctx)
 shop = Collection.Build(ctx, "Shop")
 inventory = Collection.Build(ctx, "Inventory")
 local results = Results.Build(ctx)
+local banner = Screens.BuildBanner(ctx)
+local admin = AdminPanel.Build(ctx)
+tutorial = Tutorial.Build(ctx)
+ctx.Notify = function(text, kind) notifs.Push(text, kind) end
 
-ctx.OpenShop = function() shop.Open() end
-ctx.OpenInventory = function() inventory.Open() end
-local lobbyMenu = LobbyMenu.Build(ctx)
+local function inRoundForMe(): boolean
+	local st = ReplicatedStorage:GetAttribute("GameState")
+	local role = player:GetAttribute("Role")
+	return (st == S.Round or st == S.Countdown) and role ~= "Lobby" and role ~= nil
+end
+ctx.InRound = inRoundForMe
+-- les menus ne s'ouvrent pas en pleine manche
+ctx.OpenShop = function() if not inRoundForMe() then shop.Open() end end
+ctx.OpenInventory = function() if not inRoundForMe() then inventory.Open() end end
+ctx.OpenTutorial = function() if not inRoundForMe() then tutorial.Open() end end
+ctx.OpenAdmin = function() admin.Open() end
+ctx.CloseAll = function()
+	for _, m in { shop, inventory, tutorial, admin } do m.Close() end
+end
+lobbyMenu = LobbyMenu.Build(ctx)
+if profile then lobbyMenu.SetProfile(profile) end
 Remotes.DataUpdated.OnClientEvent:Connect(ctx.SetProfile)
 task.spawn(function()
 	local ok, p = pcall(Remotes.GetProfile.InvokeServer, Remotes.GetProfile)
@@ -7020,12 +7176,6 @@ local STATE_LABEL = {
 	[S.Results] = "RÉSULTATS",
 }
 
-local function inRoundForMe(): boolean
-	local st = ReplicatedStorage:GetAttribute("GameState")
-	local role = player:GetAttribute("Role")
-	return (st == S.Round or st == S.Countdown) and role ~= "Lobby" and role ~= nil
-end
-
 local function onState()
 	local st = ReplicatedStorage:GetAttribute("GameState") or S.Lobby
 	hud.SetState(STATE_LABEL[st] or st)
@@ -7034,6 +7184,7 @@ local function onState()
 	if playing then
 		shop.Close()
 		inventory.Close()
+		tutorial.Close()
 		task.delay(0.35, function() lobbyMenu.SetVisible(not inRoundForMe()) end)
 	end
 	if st == S.Lobby or st == S.Results then roleScreen.Hide() end
@@ -7071,6 +7222,7 @@ RunService.RenderStepped:Connect(function()
 		hud.SetRemaining("")
 	end
 	hud.UpdateDash(Signals.State.DashReadyAt, Signals.State.DashCooldown)
+	admin.Update()
 end)
 
 -- =====================================================================
@@ -7095,12 +7247,120 @@ Remotes.OpenMenu.OnClientEvent:Connect(function(which: string)
 	if which == "Shop" then shop.Open() elseif which == "Inventory" then inventory.Open() end
 end)
 
-Remotes.Captured.OnClientEvent:Connect(function(hunter: Player)
+Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, skin: string?)
 	if hunter == player then
 		hud.SetTails(player:GetAttribute("TailsTaken") or 0)
+		local item = Cosmetics.Get(skin) or Cosmetics.Get(Cosmetics.DefaultFor("Tail"))
+		banner.Show("Queue prise !", item and item.Icon or "Exclusive/Trail/Red Trail 1st Outline",
+			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
 end)
-]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX0000002A"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties><Item class="ModuleScript" referent="RBX0000002D"><Properties><string name="Name">AdminPanel</string><ProtectedString name="Source"><![CDATA[--[[
+	AdminPanel - fenêtre "Admin" (archétype D "upgrade / prestige" du kit : en-tête violet, 2 stud panels d'état,
+	boîte d'info, gros CTA en ligne, rangée de petites actions).
+		LANCER (vert, confirmer)   TERMINER (rouge, détruire)
+		TOUS PRÊTS (bleu)  +1000 (vert argent)  MANCHE 60s (violet, bascule)  REVOIR TUTO (gris)
+	Les commandes sont validées côté serveur (AdminService) ; la tuile n'apparaît que si Player.IsAdmin.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local AdminPanel = {}
+local RGB = Color3.fromRGB
+
+function AdminPanel.Build(ctx)
+	local UI, Icons, Motion, Config = ctx.UI, ctx.Icons, ctx.Motion, ctx.Config
+	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+	local gui = UI.ScreenGui("MenuAdmin", 11, { Parent = ctx.PlayerGui })
+	Motion.CreateSounds(gui.Sons)
+	local win = UI.Window(gui, { Size = Vector2.new(600, 452), Title = "Admin", Header = "purple",
+		Icon = Icons.Get("Item/Hammer/Hammer 1st Outline") })
+	local body = win.Corps
+	UI.Pill(win.Fenetre, '<font color="#FFD23F">Panneau de contrôle</font>', { Width = 240, Position = UDim2.new(0.5, 0, 0, win.HeaderHeight), ZIndex = 20 })
+
+	-- ------------------------------------------------------------ état
+	local function statPanel(x, grad, title, icon)
+		local p = UI.StudPanel(body, { Size = UDim2.fromOffset(270, 104), Position = UDim2.fromOffset(x, 22), Gradient = grad, ZIndex = 3 })
+		UI.Text(p, title, { Name = "Titre", Size = UDim2.new(1, -90, 0, 26), Position = UDim2.new(0, 90, 0, 24), AnchorPoint = Vector2.new(0, 0.5),
+			AlignX = Enum.TextXAlignment.Left, Max = 22, Thickness = 2.6, ZIndex = 7 })
+		local v, vs = UI.ShadowText(p, "-", { Name = "Valeur", Size = UDim2.new(1, -96, 0, 50), Position = UDim2.new(0, 90, 0, 66), AnchorPoint = Vector2.new(0, 0.5),
+			AlignX = Enum.TextXAlignment.Left, Max = 40, Thickness = 3.2, ZIndex = 7 })
+		UI.Image(p, Icons.Get(icon), { Size = UDim2.fromOffset(84, 84), Position = UDim2.fromOffset(44, 50), Rotation = -10, ZIndex = 9 })
+		return v, vs
+	end
+	local stateText, stateShadow = statPanel(16, "cyan", "ÉTAT", "Item/Clock/Golden Clock 1st Outline")
+	local playersText, playersShadow = statPanel(309, "violet", "JOUEURS PRÊTS", "Player/4 Players/4 Players 1st Outline")
+
+	local info = UI.InsetBox(body, { Name = "Info", Size = UDim2.fromOffset(563, 64), Position = UDim2.fromOffset(16, 140) })
+	local infoText = UI.Text(info, "", { Size = UDim2.new(1, -24, 1, -10), Max = 18, Rich = true, Font = "Bold",
+		Color = RGB(220, 235, 245), Thickness = 2.2, ZIndex = 6 })
+
+	-- ------------------------------------------------------------ actions
+	local actions = {}
+	local function action(name, cmd, p)
+		p.Name = name
+		local b = UI.Button(body, p)
+		actions[cmd] = b
+		Motion.BindButton(b, 1.04, gui.Sons, function()
+			local ok, res = pcall(Remotes.AdminCommand.InvokeServer, Remotes.AdminCommand, cmd)
+			if ok and res and res.Ok then
+				Motion.Play(gui.Sons, "Achat", 1.2)
+				Motion.Float(b, res.Message, UI.Colors.FloatSuccess)
+				if cmd == "Start" then task.delay(0.6, function() ctx.CloseAll() end) end
+			else
+				Motion.Play(gui.Sons, "Refus")
+				Motion.Shake(b)
+				Motion.Float(b, if ok and res then res.Message else "Erreur", UI.Colors.FloatError)
+			end
+			if ok and res and res.ShortRound ~= nil then
+				ctx.AdminShortRound = res.ShortRound
+			end
+		end)
+		return b
+	end
+	action("Lancer", "Start", { Theme = "green", Size = Vector2.new(270, 74), Position = UDim2.fromOffset(151, 254),
+		Text = "LANCER", TextSize = 38, Icon = Icons.Get("Item/Rocket/Rocket 1st Outline") })
+	action("Terminer", "End", { Theme = "red", Size = Vector2.new(270, 74), Position = UDim2.fromOffset(444, 254),
+		Text = "TERMINER", TextSize = 34, Icon = Icons.Get("UI/Skip/Skip 1st Outline") })
+	local small = {
+		{ "TousPrets", "AllReady", "blue", "TOUS PRÊTS", "Player/Add Player/Add Player 1st Outline" },
+		{ "Pieces", "Coins", "green", "+" .. Config.AdminCoinsGift, "Currency/Coin/Golden Coin 1st Outline" },
+		{ "MancheCourte", "ShortRound", "purple", "MANCHE " .. Config.AdminShortRoundTime .. "s", "Item/Clock/Clock 1st Outline" },
+		{ "RevoirTuto", "ResetTuto", "gray", "TUTO", "Item/Book/Yellow Book 1st Outline" },
+	}
+	for i, a in small do
+		action(a[1], a[2], { Theme = a[3], Size = Vector2.new(134, 54), Position = UDim2.fromOffset(83 + (i - 1) * 144, 330),
+			Text = a[4], TextSize = 19, Icon = Icons.Get(a[5]), IconSize = 0.8 })
+	end
+
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
+	local api = { Gui = gui, Menu = menu }
+
+	local LABEL = { Lobby = "ATTENTE", Intermission = "INTERMISSION", Countdown = "DÉCOMPTE", Round = "MANCHE", Results = "RÉSULTATS" }
+	function api.Update()
+		if not menu.IsOpen then return end
+		local st = ReplicatedStorage:GetAttribute("GameState") or "Lobby"
+		local left = math.max(0, (ReplicatedStorage:GetAttribute("EndsAt") or 0) - workspace:GetServerTimeNow())
+		local s = (LABEL[st] or st) .. (if st ~= "Lobby" then "  " .. Motion.Duration(math.ceil(left)) else "")
+		stateText.Text, stateShadow.Text = s, s
+		local ready = ReplicatedStorage:GetAttribute("ReadyCount") or 0
+		local p = ("%d / %d"):format(ready, #game:GetService("Players"):GetPlayers())
+		playersText.Text, playersShadow.Text = p, p
+		local short = ctx.AdminShortRound == true
+		infoText.Text = ('LANCER saute l\'intermission (seul : manche <font color="#FFD23F">sans chasseur</font> pour tester).\nDurée des manches : <font color="#FFD23F">%d s</font>   ·   Minimum normal : <font color="#FFD23F">%d joueurs</font>')
+			:format(if short then Config.AdminShortRoundTime else Config.RoundTime, ReplicatedStorage:GetAttribute("MinPlayers") or Config.MinPlayers)
+		local inRound = st == "Round" or st == "Countdown"
+		UI.SetDisabled(actions.Start, inRound)
+		UI.SetDisabled(actions.End, not inRound)
+	end
+
+	function api.Open() menu.Open(); api.Update() end
+	function api.Close() menu.Close() end
+	return api
+end
+
+return AdminPanel
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002E"><Properties><string name="Name">Collection</string><ProtectedString name="Source"><![CDATA[--[[
 	Collection - fenêtres Shop et Inventaire (archétype "grille de slots + colonne d'onglets", cf. exemple 05 du kit).
 		Shop       : en-tête image rose + panier, tous les items, bouton Acheter (vert, prix) / Équiper (bleu) / Équipé (gris)
 		Inventaire : en-tête bleu + sac, uniquement les items possédés, bouton Équiper / Équipé
@@ -7142,7 +7402,7 @@ function Collection.Build(ctx, mode: string)
 		table.insert(base, b.Position)
 	end
 
-	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true } })
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
 	local api = { Gui = gui, Menu = menu, Window = win }
 	local currentCat = Cosmetics.Categories[1].Id
 	local cells: { [string]: Frame } = {}
@@ -7259,7 +7519,7 @@ function Collection.Build(ctx, mode: string)
 end
 
 return Collection
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002B"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002F"><Properties><string name="Name">Hud</string><ProtectedString name="Source"><![CDATA[--[[
 	Hud - HUD permanent construit avec le kit StudUI (offsets 1050x620 + une WindowScale par racine).
 		Haut centre  : minuteur (InsetBox + Pill d'état) + sous-titre (départ des chasseurs / joueurs prêts)
 		Haut gauche  : badge de rôle (bouton stud recoloré) + participants restants
@@ -7349,9 +7609,19 @@ function Hud.Build(ctx)
 	local stats = root("Stats", Vector2.new(320, 110), UDim2.new(0, 12, 1, -12), Vector2.new(0, 1))
 	UI.Image(stats, Icons.Get("Currency/Coin/Golden Coin 1st Outline"), { Name = "Piece", Size = UDim2.fromOffset(46, 46),
 		Position = UDim2.fromOffset(24, 28), Rotation = -10, ZIndex = 3 })
-	local moneyHolder = UI.new("Frame", { Name = "Argent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
+	-- ligne argent (comme la référence) : montant lime + bouton « + » glossy vert qui ouvre le shop
+	local row = UI.new("Frame", { Name = "LigneArgent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
 		Size = UDim2.fromOffset(0, 40), Position = UDim2.fromOffset(52, 8) }, stats)
+	UI.new("UIListLayout", { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0, 8),
+		VerticalAlignment = Enum.VerticalAlignment.Center, SortOrder = Enum.SortOrder.LayoutOrder }, row)
+	local moneyHolder = UI.new("Frame", { Name = "Argent", BackgroundTransparency = 1, AutomaticSize = Enum.AutomaticSize.X,
+		Size = UDim2.fromOffset(0, 40), LayoutOrder = 1 }, row)
 	local moneyText, moneyShadow = UI.MoneyText(moneyHolder, "0")
+	local plusSlot = UI.new("Frame", { Name = "EmplacementPlus", BackgroundTransparency = 1, Size = UDim2.fromOffset(39, 38), LayoutOrder = 2 }, row)
+	local plus = UI.Button(plusSlot, { Name = "BoutonPlus", Style = "Glossy", Theme = "cash", Size = Vector2.new(39, 38), Studs = false })
+	UI.OutlinedIcon(plus, UI.Assets.PlusBlack, UI.Assets.PlusWhite, { Size = UDim2.fromOffset(15, 15), Position = UDim2.fromOffset(19, 17), ZIndex = 4 })
+	Motion.BindButton(plus, 1.06, ctx.Sons, function() if ctx.OpenShop then ctx.OpenShop() end end)
+	api.PlusButton = plus
 	UI.Image(stats, Icons.Get("Exclusive/Trail/Red Trail 1st Outline"), { Name = "QueueIcone", Size = UDim2.fromOffset(40, 40),
 		Position = UDim2.fromOffset(24, 80), Rotation = -12, ZIndex = 3 })
 	local tailsText, tailsShadow = UI.ShadowText(stats, "Queues prises : 0", { Font = "Gotham", Max = 24, Size = UDim2.fromOffset(260, 30),
@@ -7433,11 +7703,13 @@ function Hud.Build(ctx)
 end
 
 return Hud
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002C"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
-	LobbyMenu - menu gauche du lobby (archétype du "left menu" de l'exemple 02) :
-		bouton large JOUER (vert = confirmer)  ->  devient "PRÊT !" (jaune) ; re-cliquer annule
-		tuiles 106x106 : SHOP (rouge) / INVENTAIRE (bleu), badge "!" pulsé sur le shop
-	Visible seulement hors manche.
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000030"><Properties><string name="Name">LobbyMenu</string><ProtectedString name="Source"><![CDATA[--[[
+	LobbyMenu - menu gauche du lobby, géométrie exacte du "left menu" de référence (screenshot 01 / exemple 02) :
+		Frame 220x292 @ (0,14,0.5,0) ; bouton large 220x64 en haut, puis grille 2x2 de tuiles 106x106
+		(centres x 53/167, y 125/239), icône énorme qui déborde, gaps 8 px.
+		JOUER (vert prairie = confirmer) -> "PRÊT !" (jaune) ; re-cliquer annule
+		SHOP (rouge) · INVENTAIRE (bleu) · TUTO (jaune) · ADMIN (violet, seulement si Player.IsAdmin)
+	Badges "!" pulsés : Shop quand un item est achetable, Tuto tant que le tutoriel n'est pas terminé.
 ]]
 
 local Players = game:GetService("Players")
@@ -7449,19 +7721,28 @@ function LobbyMenu.Build(ctx)
 	local UI, Icons, Motion = ctx.UI, ctx.Icons, ctx.Motion
 	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
 	local player = Players.LocalPlayer
-	local gui = UI.ScreenGui("MenuLobby", 5, { Parent = ctx.PlayerGui, Menu = false })
-	local panel = UI.new("Frame", { Name = "Panneau", BackgroundTransparency = 1, Size = UDim2.fromOffset(220, 186),
-		Position = UDim2.new(0, 14, 0.5, 20), AnchorPoint = Vector2.new(0, 0.5) }, gui)
+	local gui = UI.ScreenGui("MenuGauche", 4, { Parent = ctx.PlayerGui, Menu = false })
+	local panel = UI.new("Frame", { Name = "Panneau", BackgroundTransparency = 1, Size = UDim2.fromOffset(220, 292),
+		Position = UDim2.new(0, 14, 0.5, 10), AnchorPoint = Vector2.new(0, 0.5) }, gui)
 	Motion.BindResponsive(UI.new("UIScale", { Name = "WindowScale" }, panel))
 
 	local play = UI.Button(panel, { Name = "Jouer", Theme = "meadow", Size = Vector2.new(220, 64), Position = UDim2.fromOffset(110, 32),
 		Text = "JOUER", TextSize = 32, TextThickness = 3.2, Icon = Icons.Get("Item/Target/Target 1st Outline") })
-	local shop = UI.Button(panel, { Name = "Shop", Theme = "red", Size = Vector2.new(106, 106), Position = UDim2.fromOffset(53, 129),
-		Text = "Shop", IconLayout = "Big", Icon = Icons.Get("Main/Shopping Cart/Red Shopping Cart 1st Outline"), TextSize = 28 })
-	local inv = UI.Button(panel, { Name = "Inventaire", Theme = "blue", Size = Vector2.new(106, 106), Position = UDim2.fromOffset(167, 129),
-		Text = "Inventaire", IconLayout = "Big", Icon = Icons.Get("Item/Backpack/Backpack 1st Outline"), TextSize = 19 })
-	local badge = UI.NotifBadge(shop)
-	Motion.PulseScale(badge.Pulse)
+	local function tile(name, theme, text, icon, x, y, size)
+		return UI.Button(panel, { Name = name, Theme = theme, Size = Vector2.new(106, 106), Position = UDim2.fromOffset(x, y),
+			Text = text, IconLayout = "Big", Icon = Icons.Get(icon), TextSize = size or 28 })
+	end
+	local shop = tile("Shop", "red", "Shop", "Main/Shopping Cart/Red Shopping Cart 1st Outline", 53, 125)
+	local inv = tile("Inventaire", "blue", "Sac", "Item/Backpack/Backpack 1st Outline", 167, 125)
+	local tuto = tile("Tuto", "yellow", "Tuto", "Item/Book/Yellow Book 1st Outline", 53, 239)
+	local admin = tile("Admin", "purple", "Admin", "Item/Hammer/Hammer 1st Outline", 167, 239)
+
+	local shopBadge = UI.NotifBadge(shop)
+	local tutoBadge = UI.NotifBadge(tuto)
+	Motion.PulseScale(shopBadge.Pulse)
+	Motion.PulseScale(tutoBadge.Pulse)
+	shopBadge.Visible = false
+	tutoBadge.Visible = false
 
 	local api = { Gui = gui }
 
@@ -7473,16 +7754,31 @@ function LobbyMenu.Build(ctx)
 	player:GetAttributeChangedSignal("Ready"):Connect(refreshPlay)
 	refreshPlay()
 
+	local function refreshAdmin()
+		admin.Visible = player:GetAttribute("IsAdmin") == true
+	end
+	player:GetAttributeChangedSignal("IsAdmin"):Connect(refreshAdmin)
+	refreshAdmin()
+
 	Motion.BindButton(play, 1.04, ctx.Sons, function()
 		local ready = not (player:GetAttribute("Ready") == true)
 		Remotes.SetReady:FireServer(ready)
 		Motion.Float(play, if ready then "En attente des autres joueurs..." else "Annulé", if ready then UI.Colors.FloatSuccess else UI.Colors.FloatWarn)
 	end)
-	Motion.BindButton(shop, 1.04, ctx.Sons, function()
-		badge.Visible = false
-		ctx.OpenShop()
-	end)
+	Motion.BindButton(shop, 1.04, ctx.Sons, function() ctx.OpenShop() end)
 	Motion.BindButton(inv, 1.04, ctx.Sons, function() ctx.OpenInventory() end)
+	Motion.BindButton(tuto, 1.04, ctx.Sons, function() ctx.OpenTutorial() end)
+	Motion.BindButton(admin, 1.04, ctx.Sons, function() ctx.OpenAdmin() end)
+
+	--- Badges selon le profil : un item non possédé abordable / tutoriel pas fini.
+	function api.SetProfile(profile)
+		local affordable = false
+		for _, item in ctx.Cosmetics.Items do
+			if not profile.Owned[item.Id] and item.Price <= profile.Coins then affordable = true break end
+		end
+		shopBadge.Visible = affordable
+		tutoBadge.Visible = profile.TutorialDone ~= true
+	end
 
 	function api.SetVisible(v: boolean)
 		panel.Visible = v -- (pas gui.Enabled : StudMotion.Window restaure Enabled à la fermeture d'un menu)
@@ -7491,7 +7787,7 @@ function LobbyMenu.Build(ctx)
 end
 
 return LobbyMenu
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002D"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000031"><Properties><string name="Name">Results</string><ProtectedString name="Source"><![CDATA[--[[
 	Results - écran de résultats animé (fenêtre en-tête doré + trophée).
 		3 grandes cartes (slots à soleil) : SURVIE / QUEUES / PIÈCES (les pièces défilent avec un tic sonore)
 		détail des gains (InsetBox, valeurs surlignées #FFD23F)
@@ -7530,7 +7826,7 @@ function Results.Build(ctx)
 	local list = UI.ScrollList(win.Corps, { Name = "Classement", Size = UDim2.fromOffset(572, 150), Position = UDim2.fromOffset(31, 232),
 		Padding = 6, PadTop = 4, PadLeft = 6 })
 
-	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true } })
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
 	local api = { Gui = gui, Menu = menu }
 	local token = 0
 
@@ -7603,7 +7899,7 @@ function Results.Build(ctx)
 end
 
 return Results
-]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX0000002E"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000032"><Properties><string name="Name">Screens</string><ProtectedString name="Source"><![CDATA[--[[
 	Screens - notifications animées + écran de rôle / décompte de début de manche.
 	Notifications : Pills StudUI empilées en haut (pop Back-Out, 3 s, fondu), couleur selon le type.
 	Écran de rôle : StudPanel rouge (chasseur) ou bleu (participant), icône sticker inclinée qui déborde,
@@ -7745,5 +8041,174 @@ function Screens.BuildRoleScreen(ctx)
 	return api
 end
 
+--[[ Bannière de récompense (archétype G du kit) : panneau stud doré + soleil qui tourne, titre extrudé,
+	carte de récompense (queue arrachée, "+10" pièces). DisplayOrder 40, jamais masquée par les menus. ]]
+function Screens.BuildBanner(ctx)
+	local UI, Icons, Motion = ctx.UI, ctx.Icons, ctx.Motion
+	local gui = UI.ScreenGui("Recompenses", 40, { Parent = ctx.PlayerGui, Menu = false })
+	local banner = UI.StudPanel(gui, { Name = "Banniere", Size = UDim2.fromOffset(420, 210), Position = UDim2.new(0.5, 0, 0, 96),
+		AnchorPoint = Vector2.new(0.5, 0), Gradient = "gold", ZIndex = 2 })
+	banner.Visible = false
+	banner.ClipsDescendants = true
+	UI.new("UIScale", { Name = "WindowScale" }, banner)
+	local sun = UI.Sunburst(banner, 420, { Position = UDim2.fromScale(0.5, 0.62), Transparency = 0.55, ZIndex = 3 })
+	sun.Name = "Soleil"
+	local title, titleShadow = UI.ShadowText(banner, "Queue prise !", { Max = 40, Size = UDim2.new(1, -20, 0, 50),
+		Position = UDim2.new(0.5, 0, 0, 38), Stroke = RGB(70, 34, 0), Thickness = 3.5, ZIndex = 10 })
+	local slot = UI.ItemSlot(banner, { Name = "Carte", Button = false, Size = Vector2.new(112, 120), Position = UDim2.new(0.5, 0, 0, 74),
+		AnchorPoint = Vector2.new(0.5, 0), Title = "Classique", Tag = "+10", TagColor = UI.Colors.TagGold, ZIndex = 5 })
+	local api = { Gui = gui }
+	function api.Show(text: string, iconPath: string, name: string, tag: string)
+		title.Text, titleShadow.Text = text, text
+		slot.Icone.Image = Icons.Get(iconPath)
+		slot.Icone.Rotation = -10
+		slot.Nom.Text = name
+		slot.Etiquette.Text = tag
+		slot.Etiquette.Visible = true
+		task.spawn(Motion.ShowBanner, banner, 2.2, ctx.Sons)
+	end
+	return api
+end
+
 return Screens
-]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX00000032"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000033"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>
+]]></ProtectedString></Properties></Item><Item class="ModuleScript" referent="RBX00000033"><Properties><string name="Name">Tutorial</string><ProtectedString name="Source"><![CDATA[--[[
+	Tutorial - tutoriel en 4 pages (fenêtre en-tête vert + livre).
+	Chaque page : grand stud panel coloré (soleil qui tourne + icône sticker inclinée qui déborde, titre extrudé,
+	description Montserrat Bold), une rangée "extra" (touches, gains...), points de pagination, RETOUR (gris) / SUIVANT (bleu)
+	puis C'EST PARTI ! (vert) à la dernière page. Pill "1 / 4" sur la jointure de l'en-tête.
+	S'ouvre automatiquement au premier passage (profil.TutorialDone == false) et via la tuile "Tuto" du lobby.
+]]
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local Tutorial = {}
+local RGB = Color3.fromRGB
+
+function Tutorial.Build(ctx)
+	local UI, Icons, Motion = ctx.UI, ctx.Icons, ctx.Motion
+	local Remotes = ReplicatedStorage:WaitForChild("Remotes")
+	local C = ctx.Config.Coins
+	local gui = UI.ScreenGui("MenuTuto", 11, { Parent = ctx.PlayerGui })
+	Motion.CreateSounds(gui.Sons)
+	local win = UI.Window(gui, { Size = Vector2.new(640, 470), Title = "Comment jouer", Header = "green", TitleWidth = 420,
+		Icon = Icons.Get("Item/Book/Yellow Book 1st Outline") })
+	local body = win.Corps
+	local pill = UI.Pill(win.Fenetre, "1 / 4", { Width = 120, Position = UDim2.new(0.5, 0, 0, win.HeaderHeight), ZIndex = 20 })
+
+	local HUNTER = UI.seq(RGB(255, 110, 110), RGB(240, 30, 60), RGB(170, 0, 30))
+	local PAGES = {
+		{ Title = "GARDE TA QUEUE !", Gradient = "cyan", Icon = "Exclusive/Trail/Red Trail 1st Outline", Stroke = RGB(2, 30, 60),
+			Text = "Chaque participant porte une queue dans le dos. Survis le plus longtemps possible sans te la faire arracher !",
+			Extra = { { "3:00", "par manche" }, { "2+", "joueurs" }, { "1-2", "chasseurs" } } },
+		{ Title = "LES CHASSEURS", Gradient = HUNTER, Icon = "Player/Skull/Skull 1st Outline", Stroke = RGB(60, 0, 12),
+			Text = "Ils brillent en ROUGE à travers les murs. S'ils te touchent, ta queue est arrachée... et tu deviens chasseur à ton tour !",
+			Extra = { { "ROUGE", "= danger" }, { "2 s", "d'immunité" }, { "+1", "queue prise" } } },
+		{ Title = "BOUGE COMME UN PRO", Gradient = "violet", Icon = "Main/Lighting/Lighting 1st Outline", Stroke = RGB(34, 4, 70),
+			Text = "Dash pour t'échapper, slide pour passer dans les mini-tunnels (néon cyan), jump pads verts pour monter sur les toits.",
+			Extra = { { "Q / Shift", "DASH" }, { "C / Ctrl", "SLIDE" }, { "Pad vert", "SAUT" } } },
+		{ Title = "GAGNE DES PIÈCES", Gradient = "gold", Icon = "Currency/Coin/Golden Coin 1st Outline", Stroke = RGB(70, 34, 0),
+			Text = "Dépense-les au Shop du lobby : skins de queue, traînées de dash et effets de capture. Que du style, aucun avantage !",
+			Extra = { { "+1", ("/ %d s survie"):format(C.SurvivalSecondsPerCoin) }, { "+" .. C.PerTail, "par queue" }, { "+" .. C.LastSurvivor, "survivant" } } },
+	}
+
+	-- ------------------------------------------------------------ éléments réutilisés d'une page à l'autre
+	local holder = UI.new("Frame", { Name = "Page", BackgroundTransparency = 1, Size = UDim2.fromOffset(603, 232),
+		Position = UDim2.fromOffset(317, 136), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 3 }, body)
+	local pageScale = UI.new("UIScale", {}, holder)
+	local panel = UI.StudPanel(holder, { Name = "Panneau", Size = UDim2.fromOffset(603, 232), Gradient = "cyan", ZIndex = 3 })
+	panel.ClipsDescendants = false
+	local sun = UI.Sunburst(panel, 300, { Position = UDim2.fromOffset(130, 116), Transparency = 0.5, ZIndex = 4 })
+	local icon = UI.Image(panel, "", { Name = "Icone", Size = UDim2.fromOffset(176, 176), Position = UDim2.fromOffset(128, 108), Rotation = -10, ZIndex = 9 })
+	local title, titleShadow = UI.ShadowText(panel, "", { Font = "Gotham", Max = 36, Size = UDim2.fromOffset(360, 50),
+		Position = UDim2.fromOffset(418, 52), Thickness = 3.6, ZIndex = 10 })
+	local desc = UI.Text(panel, "", { Font = "Bold", Max = 21, Size = UDim2.fromOffset(350, 110), Position = UDim2.fromOffset(418, 148),
+		Thickness = 2.4, ZIndex = 10 })
+
+	local extras = {}
+	for i = 1, 3 do
+		local box = UI.InsetBox(body, { Name = "Extra" .. i, Size = UDim2.fromOffset(190, 54), Position = UDim2.fromOffset(16 + (i - 1) * 206, 262) })
+		local big = UI.Text(box, "", { Font = "Gotham", Size = UDim2.new(0.5, -6, 1, -6), Position = UDim2.new(0, 8, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5),
+			AlignX = Enum.TextXAlignment.Left, Max = 24, Gradient = UI.TextGradients.Stock, Stroke = RGB(33, 7, 0), Thickness = 2.6, ZIndex = 6 })
+		local small = UI.Text(box, "", { Size = UDim2.new(0.5, -8, 1, -6), Position = UDim2.new(1, -8, 0.5, 0), AnchorPoint = Vector2.new(1, 0.5),
+			AlignX = Enum.TextXAlignment.Right, Max = 17, Thickness = 2.2, ZIndex = 6 })
+		extras[i] = { Big = big, Small = small }
+	end
+
+	local dots = {}
+	for i = 1, #PAGES do
+		local d = UI.new("Frame", { Name = "Point" .. i, BackgroundColor3 = RGB(60, 70, 80), BorderSizePixel = 0, Size = UDim2.fromOffset(14, 14),
+			Position = UDim2.fromOffset(317 + (i - (#PAGES + 1) / 2) * 24, 336), AnchorPoint = Vector2.new(0.5, 0.5), ZIndex = 4 }, body)
+		UI.new("UICorner", { CornerRadius = UDim.new(1, 0) }, d)
+		UI.Stroke(d, UI.Colors.SlotStroke, 2)
+		dots[i] = d
+	end
+
+	local back = UI.Button(body, { Name = "Retour", Theme = "gray", Size = Vector2.new(160, 52), Position = UDim2.fromOffset(98, 342),
+		Text = "RETOUR", TextSize = 26 })
+	local nextB = UI.Button(body, { Name = "Suivant", Theme = "blue", Size = Vector2.new(190, 56), Position = UDim2.fromOffset(526, 340),
+		Text = "SUIVANT", TextSize = 28 })
+
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
+	Motion.Spin(sun, 22)
+	Motion.Sway(icon, 4, 1.8)
+	local api = { Gui = gui, Menu = menu }
+	local page = 1
+
+	local function show(n: number, animate: boolean?)
+		page = math.clamp(n, 1, #PAGES)
+		local p = PAGES[page]
+		panel.Degrade.Color = if typeof(p.Gradient) == "string" then UI.PanelThemes[p.Gradient] else p.Gradient
+		icon.Image = Icons.Get(p.Icon)
+		title.Text, titleShadow.Text = p.Title, p.Title
+		title.UIStroke.Color = p.Stroke
+		titleShadow.UIStroke.Color = p.Stroke
+		titleShadow.TextColor3 = p.Stroke
+		desc.Text = p.Text
+		desc.UIStroke.Color = p.Stroke
+		for i, e in extras do
+			local x = p.Extra[i]
+			e.Big.Text = x and x[1] or ""
+			e.Small.Text = x and x[2] or ""
+		end
+		for i, d in dots do
+			d.BackgroundColor3 = if i == page then UI.Colors.Selection else RGB(60, 70, 80)
+			d.Size = if i == page then UDim2.fromOffset(18, 18) else UDim2.fromOffset(14, 14)
+		end
+		pill.Texte.Text = ('<font color="#FFD23F">%d</font> / %d'):format(page, #PAGES)
+		UI.SetDisabled(back, page == 1)
+		local last = page == #PAGES
+		UI.Recolor(nextB, if last then "green" else "blue")
+		UI.SetButtonText(nextB, if last then "C'EST PARTI !" else "SUIVANT")
+		if animate then
+			pageScale.Scale = 0.88
+			TweenService:Create(pageScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+			Motion.Play(gui.Sons, "Carte")
+		end
+	end
+
+	Motion.BindButton(back, 1.05, gui.Sons, function()
+		if page > 1 then show(page - 1, true) end
+	end)
+	Motion.BindButton(nextB, 1.05, gui.Sons, function()
+		if page < #PAGES then
+			show(page + 1, true)
+		else
+			Remotes.TutorialDone:FireServer()
+			Motion.Play(gui.Sons, "Achat")
+			menu.Close()
+			ctx.Notify("Bonne chance ! Clique sur JOUER quand tu es prêt.", "go")
+		end
+	end)
+
+	function api.Open()
+		show(1, false)
+		menu.Open()
+	end
+	function api.Close() menu.Close() end
+	show(1, false)
+	return api
+end
+
+return Tutorial
+]]></ProtectedString></Properties></Item></Item></Item></Item><Item class="Lighting" referent="RBX00000037"><Properties><string name="Name">Lighting</string><float name="Brightness">2.6</float><float name="ClockTime">15.2</float><float name="GeographicLatitude">30</float><Color3 name="Ambient"><R>0.36</R><G>0.3</G><B>0.26</B></Color3><Color3 name="OutdoorAmbient"><R>0.55</R><G>0.5</G><B>0.45</B></Color3><float name="EnvironmentDiffuseScale">0.6</float><float name="EnvironmentSpecularScale">0.4</float><bool name="GlobalShadows">true</bool></Properties></Item><Item class="SoundService" referent="RBX00000038"><Properties><string name="Name">SoundService</string><bool name="RespectFilteringEnabled">true</bool></Properties></Item></roblox>

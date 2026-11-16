@@ -48,6 +48,7 @@ local function template()
 			Capture = Cosmetics.DefaultFor("Capture"),
 		},
 		Stats = { Rounds = 0, TailsTaken = 0, BestSurvival = 0, Wins = 0, CoinsEarned = 0 },
+		TutorialDone = false,
 	}
 end
 
@@ -109,6 +110,7 @@ function DataService.Snapshot(player: Player)
 		Owned = table.clone(d.Owned),
 		Equipped = table.clone(d.Equipped),
 		Stats = table.clone(d.Stats),
+		TutorialDone = d.TutorialDone == true,
 	}
 end
 
@@ -272,6 +274,14 @@ function DataService.Init()
 		while true do
 			refreshLeaderboard()
 			task.wait(Config.Data.LeaderboardRefresh)
+		end
+	end)
+
+	Remotes.TutorialDone.OnServerEvent:Connect(function(player)
+		local d = DataService.Profiles[player]
+		if d and not d.TutorialDone then
+			d.TutorialDone = true
+			DataService.Push(player)
 		end
 	end)
 

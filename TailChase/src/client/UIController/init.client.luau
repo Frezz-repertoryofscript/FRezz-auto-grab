@@ -28,6 +28,8 @@ local LobbyMenu = require(script.LobbyMenu)
 local Collection = require(script.Collection)
 local Results = require(script.Results)
 local Screens = require(script.Screens)
+local AdminPanel = require(script.AdminPanel)
+local Tutorial = require(script.Tutorial)
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -50,7 +52,8 @@ local ctx = {
 -- =====================================================================
 -- PROFIL (défini avant les builders : les fenêtres l'utilisent dès leur construction)
 -- =====================================================================
-local hud, shop, inventory
+local hud, shop, inventory, lobbyMenu, tutorial
+local tutoShown = false
 function ctx.GetProfile() return profile end
 function ctx.SetProfile(p)
 	if not p then return end
@@ -58,6 +61,12 @@ function ctx.SetProfile(p)
 	if hud then hud.SetCoins(p.Coins) end
 	if shop then shop.Refresh(p) end
 	if inventory then inventory.Refresh(p) end
+	if lobbyMenu then lobbyMenu.SetProfile(p) end
+	-- tutoriel automatique au tout premier passage
+	if tutorial and not p.TutorialDone and not tutoShown then
+		tutoShown = true
+		task.delay(1.5, function() if not ctx.InRound() then tutorial.Open() end end)
+	end
 end
 
 hud = Hud.Build(ctx)
@@ -66,10 +75,27 @@ local roleScreen = Screens.BuildRoleScreen(ctx)
 shop = Collection.Build(ctx, "Shop")
 inventory = Collection.Build(ctx, "Inventory")
 local results = Results.Build(ctx)
+local banner = Screens.BuildBanner(ctx)
+local admin = AdminPanel.Build(ctx)
+tutorial = Tutorial.Build(ctx)
+ctx.Notify = function(text, kind) notifs.Push(text, kind) end
 
-ctx.OpenShop = function() shop.Open() end
-ctx.OpenInventory = function() inventory.Open() end
-local lobbyMenu = LobbyMenu.Build(ctx)
+local function inRoundForMe(): boolean
+	local st = ReplicatedStorage:GetAttribute("GameState")
+	local role = player:GetAttribute("Role")
+	return (st == S.Round or st == S.Countdown) and role ~= "Lobby" and role ~= nil
+end
+ctx.InRound = inRoundForMe
+-- les menus ne s'ouvrent pas en pleine manche
+ctx.OpenShop = function() if not inRoundForMe() then shop.Open() end end
+ctx.OpenInventory = function() if not inRoundForMe() then inventory.Open() end end
+ctx.OpenTutorial = function() if not inRoundForMe() then tutorial.Open() end end
+ctx.OpenAdmin = function() admin.Open() end
+ctx.CloseAll = function()
+	for _, m in { shop, inventory, tutorial, admin } do m.Close() end
+end
+lobbyMenu = LobbyMenu.Build(ctx)
+if profile then lobbyMenu.SetProfile(profile) end
 Remotes.DataUpdated.OnClientEvent:Connect(ctx.SetProfile)
 task.spawn(function()
 	local ok, p = pcall(Remotes.GetProfile.InvokeServer, Remotes.GetProfile)
@@ -101,12 +127,6 @@ local STATE_LABEL = {
 	[S.Results] = "RÉSULTATS",
 }
 
-local function inRoundForMe(): boolean
-	local st = ReplicatedStorage:GetAttribute("GameState")
-	local role = player:GetAttribute("Role")
-	return (st == S.Round or st == S.Countdown) and role ~= "Lobby" and role ~= nil
-end
-
 local function onState()
 	local st = ReplicatedStorage:GetAttribute("GameState") or S.Lobby
 	hud.SetState(STATE_LABEL[st] or st)
@@ -115,6 +135,7 @@ local function onState()
 	if playing then
 		shop.Close()
 		inventory.Close()
+		tutorial.Close()
 		task.delay(0.35, function() lobbyMenu.SetVisible(not inRoundForMe()) end)
 	end
 	if st == S.Lobby or st == S.Results then roleScreen.Hide() end
@@ -152,6 +173,7 @@ RunService.RenderStepped:Connect(function()
 		hud.SetRemaining("")
 	end
 	hud.UpdateDash(Signals.State.DashReadyAt, Signals.State.DashCooldown)
+	admin.Update()
 end)
 
 -- =====================================================================
@@ -176,8 +198,11 @@ Remotes.OpenMenu.OnClientEvent:Connect(function(which: string)
 	if which == "Shop" then shop.Open() elseif which == "Inventory" then inventory.Open() end
 end)
 
-Remotes.Captured.OnClientEvent:Connect(function(hunter: Player)
+Remotes.Captured.OnClientEvent:Connect(function(hunter: Player, runner: Player, skin: string?)
 	if hunter == player then
 		hud.SetTails(player:GetAttribute("TailsTaken") or 0)
+		local item = Cosmetics.Get(skin) or Cosmetics.Get(Cosmetics.DefaultFor("Tail"))
+		banner.Show("Queue prise !", item and item.Icon or "Exclusive/Trail/Red Trail 1st Outline",
+			runner and runner.DisplayName or "?", "+" .. Config.Coins.PerTail)
 	end
 end)

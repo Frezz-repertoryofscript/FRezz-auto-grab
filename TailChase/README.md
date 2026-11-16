@@ -8,6 +8,7 @@ Projet **Rojo**. L'UI est entièrement construite avec le kit **Stud UI Clean Ro
 
 1. Installe Rojo (plugin Studio + CLI) : https://rojo.space
 2. `cd TailChase && rojo serve`, puis dans Studio : plugin Rojo → **Connect**.
+   (le plus simple : ouvre directement `TailChase.rbxlx`, régénéré par `python3 tools/build_rbxlx.py`)
    (ou `rojo build -o TailChase.rbxlx` et ouvre le fichier)
 3. **Game Settings → Avatar → R15** (les animations procédurales visent le R15 ; en R6 les animations par défaut restent actives).
 4. Pour tester la sauvegarde : **Game Settings → Security → Enable Studio Access to API Services**.
@@ -18,12 +19,29 @@ La map, le lobby, l'éclairage et les groupes de collision sont générés au d�
 
 | Test | Comment |
 |---|---|
-| Solo (mouvement, map, UI, boucle complète sans chasseur) | Play → clique **JOUER** → intermission 20 s → manche |
-| Vraie manche | Test → Clients and Servers → **Local Server, 2 à 4 joueurs**, chacun clique JOUER |
+| Solo (test) | Play → tuile **Admin** (violette) → **LANCER** : manche immédiate, sans chasseur |
+| Vraie manche (minimum **2 joueurs** prêts) | Test → Clients and Servers → **Local Server, 2 à 4 joueurs**, chacun clique JOUER (ou Admin → TOUS PRÊTS → LANCER) |
 | Shop | Bouton Shop du menu gauche, ou le stand rouge du lobby (ProximityPrompt) |
 | Tests hors Studio | `tests/run.sh` (binaire `luau`) : mocks de l'API Roblox, exécute map, lobby, une manche complète avec captures, shop, toute l'UI et les contrôleurs |
 
 Commandes : **Dash** Q / Shift / manette X / bouton tactile · **Slide** C / Ctrl / manette Y / bouton tactile. Les tunnels de slide sont signalés par un néon cyan et un panneau « SLIDE [C] ».
+
+## Panel admin
+
+Tuile violette « Admin » du menu de gauche (visible en Studio pour tous ; en ligne pour le créateur du jeu, le rang ≥ `Config.AdminGroupRank` du groupe propriétaire et les UserIds de `Config.Admins`). Toutes les commandes sont vérifiées par le serveur (`AdminService`).
+
+| Bouton | Effet |
+|---|---|
+| LANCER | tout le monde prêt + intermission sautée → manche tout de suite (seul : sans chasseur) |
+| TERMINER | fin de la manche en cours (résultats et pièces normaux) |
+| TOUS PRÊTS | met tous les joueurs « prêts » |
+| +1000 | pièces pour tester le shop |
+| MANCHE 60s | bascule la durée des manches 180 s ↔ 60 s |
+| TUTO | réaffiche le tutoriel |
+
+## Tutoriel
+
+4 pages (queue, chasseurs, mouvements, pièces), s'ouvre tout seul au premier passage (sauvegardé dans le profil) et via la tuile jaune « Tuto ».
 
 ## Architecture
 
@@ -37,17 +55,17 @@ ReplicatedStorage
   Remotes/                             RemoteEvents et RemoteFunctions (déclarés dans default.project.json)
 ServerScriptService
   GameManager (Script)                 boucle Lobby → Intermission → Countdown → Round → Results, captures validées
-  RoleService, TailService, CoinService, DataService, ShopService, MovementService, MapBuilder
+  RoleService, TailService, CoinService, DataService, ShopService, MovementService, AdminService, MapBuilder
 StarterPlayerScripts
   MovementController                   dash, slide, jump pads
   AnimationController                  walk/run/idle/air/dash/slide/arrachage procéduraux (Motor6D.Transform)
   EffectsController                    balancement des queues, traînées, poussière, FOV, shake, queue qui vole, musique
-  UIController (+ Hud, LobbyMenu, Collection, Results, Screens)
+  UIController (+ Hud, LobbyMenu, Collection, Results, Screens, AdminPanel, Tutorial)
 ```
 
 ## Valeurs à ajuster (`Shared/Config`)
 
-- Manche : `MinPlayers` (4), `StudioMinPlayers` (1), `IntermissionTime` 20, `CountdownTime` 5, `HunterReleaseDelay` 3, `RoundTime` 180, `ResultsTime` 10, `ExtraHunterThreshold` 10
+- Manche : `MinPlayers` (2), `StudioMinPlayers` (2), `IntermissionTime` 20, `CountdownTime` 5, `HunterReleaseDelay` 3, `RoundTime` 180, `ResultsTime` 10, `ExtraHunterThreshold` 10
 - Capture : `CaptureDistance` 5.5, `CaptureVerticalMax` 6, `HunterCaptureCooldown` 0.6, `NewHunterImmunity` 2
 - Mouvement : `RunnerWalkSpeed` 20, `HunterWalkSpeed` 21.5, `DashSpeed` 78, `DashDuration` 0.18, `DashCooldown` 4, `DashFovBoost` 14, `SlideBoost` 1.55, `SlideDuration` 0.85, `SlideCooldown` 1.1, `JumpPadPower`, `KillPlaneY` -40
 - Économie : `Coins.SurvivalSecondsPerCoin` 5, `PerTail` 10, `Participation` 25, `LastSurvivor` 50, `StartingCoins` 100

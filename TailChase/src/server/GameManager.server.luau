@@ -23,6 +23,8 @@ local TailService = require(script.Parent.TailService)
 local RoleService = require(script.Parent.RoleService)
 local CoinService = require(script.Parent.CoinService)
 local MovementService = require(script.Parent.MovementService)
+local AdminService = require(script.Parent.AdminService)
+local Control = AdminService.Control
 
 local S = Config.States
 local MIN_PLAYERS = if RunService:IsStudio() then Config.StudioMinPlayers else Config.MinPlayers
@@ -35,6 +37,7 @@ DataService.Init()
 ShopService.Init()
 TailService.Init()
 MovementService.Init()
+AdminService.Init()
 
 ReplicatedStorage:SetAttribute("MinPlayers", MIN_PLAYERS)
 
@@ -243,11 +246,15 @@ local function endRound()
 end
 
 local function runRound()
+	local forced = Control.ForceStart
+	Control.ForceStart = false
+	Control.ForceEnd = false
 	local participants = shuffle(readyPlayers())
-	if #participants < math.min(2, MIN_PLAYERS) then return end
+	-- lancement admin : on accepte une manche solo (sans chasseur) pour tester
+	if #participants < (if forced then 1 else MIN_PLAYERS) then return end
 
 	local hunterCount = if #participants > Config.ExtraHunterThreshold then 2 else 1
-	if #participants < 2 then hunterCount = 0 end -- (Studio solo : manche sans chasseur pour tester le mouvement)
+	if #participants < 2 then hunterCount = 0 end -- (lancement admin en solo : manche sans chasseur)
 	local spawns = shuffle(MapBuilder.GetMapSpawns())
 	local r: Round = { Players = {}, GoTime = 0, Active = true, LastCaptured = nil, Released = false }
 	round = r
@@ -272,7 +279,8 @@ local function runRound()
 	for p, d in r.Players do
 		if d.Role == "Runner" and p.Parent then RoleService.SetFrozen(p, false) end
 	end
-	setState(S.Round, Config.RoundTime)
+	local roundTime = AdminService.RoundTime()
+	setState(S.Round, roundTime)
 	notifyAll("GO ! Fuyez !", "go")
 	task.delay(Config.HunterReleaseDelay, function()
 		if round ~= r or not r.Active then return end
@@ -283,8 +291,13 @@ local function runRound()
 		notifyAll("Les chasseurs sont lâchés !", "hunter")
 	end)
 
-	local endsAt = os.clock() + Config.RoundTime
+	local endsAt = os.clock() + roundTime
 	while r.Active and os.clock() < endsAt do
+		if Control.ForceEnd then
+			Control.ForceEnd = false
+			notifyAll("Manche terminée par un admin", "info")
+			break
+		end
 		checkCaptures()
 		local runners, hunters = countRoles()
 		if runners == 0 and hunterCount > 0 then break end
@@ -394,18 +407,20 @@ while true do
 	repeat
 		ReplicatedStorage:SetAttribute("ReadyCount", #readyPlayers())
 		task.wait(1)
-	until #readyPlayers() >= MIN_PLAYERS
+	until #readyPlayers() >= MIN_PLAYERS or Control.ForceStart
 
-	setState(S.Intermission, Config.IntermissionTime)
-	local t0 = os.clock()
 	local cancelled = false
-	while os.clock() - t0 < Config.IntermissionTime do
-		task.wait(0.25)
-		local n = #readyPlayers()
-		ReplicatedStorage:SetAttribute("ReadyCount", n)
-		if n < MIN_PLAYERS then
-			cancelled = true
-			break
+	if not Control.ForceStart then
+		setState(S.Intermission, Config.IntermissionTime)
+		local t0 = os.clock()
+		while os.clock() - t0 < Config.IntermissionTime and not Control.ForceStart do
+			task.wait(0.25)
+			local n = #readyPlayers()
+			ReplicatedStorage:SetAttribute("ReadyCount", n)
+			if n < MIN_PLAYERS and not Control.ForceStart then
+				cancelled = true
+				break
+			end
 		end
 	end
 	if cancelled then

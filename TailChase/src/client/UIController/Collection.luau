@@ -40,7 +40,7 @@ function Collection.Build(ctx, mode: string)
 		table.insert(base, b.Position)
 	end
 
-	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true } })
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
 	local api = { Gui = gui, Menu = menu, Window = win }
 	local currentCat = Cosmetics.Categories[1].Id
 	local cells: { [string]: Frame } = {}

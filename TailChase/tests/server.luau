@@ -46,3 +46,24 @@ print("State fin:", B.RS:GetAttribute("GameState"), "results envoyés:", results
 print("notifs:", table.concat(notifs, " | "))
 B.pump(15)
 print("State:", B.RS:GetAttribute("GameState"))
+
+-- ===== admin : lancement immédiat en SOLO (Bob et Carl partent)
+b.Parent = nil; c.Parent = nil
+for _, p in { a } do p:SetAttribute("Ready", false) end
+B.pump(40)
+print("Solo, état (doit rester Lobby sans admin):", B.RS:GetAttribute("GameState"), "IsAdmin:", a:GetAttribute("IsAdmin"))
+local inv = rem.AdminCommand.OnServerInvoke
+print("cmd End hors manche:", inv(a, "End").Message)
+print("cmd ShortRound:", inv(a, "ShortRound").Message)
+print("cmd Start:", inv(a, "Start").Message)
+B.pump(2)
+print("après Start:", B.RS:GetAttribute("GameState"), "role", a:GetAttribute("Role"))
+B.pump(6)
+print("manche:", B.RS:GetAttribute("GameState"), "durée restante ~", math.floor(B.RS:GetAttribute("EndsAt") - 1000 - B.now()))
+print("cmd Start pendant manche:", inv(a, "Start").Message)
+print("cmd End:", inv(a, "End").Message)
+B.pump(1)
+print("après End:", B.RS:GetAttribute("GameState"), "role", a:GetAttribute("Role"))
+print("cmd Coins:", inv(a, "Coins").Message, "coins", Data.Get(a).Coins)
+rem.TutorialDone.OnServerEvent:Fire(a)
+print("TutorialDone:", Data.Get(a).TutorialDone, "| ResetTuto:", inv(a, "ResetTuto").Message, Data.Get(a).TutorialDone)

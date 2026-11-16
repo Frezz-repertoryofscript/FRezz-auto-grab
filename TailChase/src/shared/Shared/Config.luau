@@ -9,14 +9,26 @@ local Config = {}
 -- =====================================================================
 -- BOUCLE DE MANCHE
 -- =====================================================================
-Config.MinPlayers = 4            -- joueurs "prêts" minimum pour lancer l'intermission
-Config.StudioMinPlayers = 1      -- en Studio : 1 = manche solo sans chasseur (test du mouvement), 2+ = Test > Local Server
+Config.MinPlayers = 2            -- joueurs "prêts" minimum pour lancer l'intermission (1 chasseur + 1 participant)
+Config.StudioMinPlayers = 2      -- en Studio aussi (Test > Local Server 2 joueurs). Pour tester seul : panel admin > LANCER
 Config.IntermissionTime = 20     -- secondes
 Config.CountdownTime = 5         -- décompte avant le départ (tout le monde figé)
 Config.HunterReleaseDelay = 3    -- avance des participants : les chasseurs partent X s après le GO
 Config.RoundTime = 180           -- 3 minutes
 Config.ResultsTime = 10
 Config.ExtraHunterThreshold = 10 -- au-delà de ce nombre de joueurs : 2 chasseurs
+
+-- =====================================================================
+-- ADMIN (panel « Admin » du lobby)
+-- Admins : en Studio tout le monde, sinon le créateur du jeu (ou rang >= AdminGroupRank du groupe propriétaire)
+-- + les UserIds listés ici.
+-- =====================================================================
+Config.Admins = {
+	-- 123456789,
+}
+Config.AdminGroupRank = 254
+Config.AdminShortRoundTime = 60   -- bouton « MANCHE COURTE »
+Config.AdminCoinsGift = 1000      -- bouton « +1000 PIÈCES »
 
 -- =====================================================================
 -- CAPTURE (validée côté serveur)

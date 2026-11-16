@@ -37,7 +37,7 @@ function Results.Build(ctx)
 	local list = UI.ScrollList(win.Corps, { Name = "Classement", Size = UDim2.fromOffset(572, 150), Position = UDim2.fromOffset(31, 232),
 		Padding = 6, PadTop = 4, PadLeft = 6 })
 
-	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true } })
+	local menu = Motion.Window(gui, win.Fenetre, { Keep = { Notifications = true, Recompenses = true } })
 	local api = { Gui = gui, Menu = menu }
 	local token = 0
 

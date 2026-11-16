@@ -36,7 +36,7 @@ workspace.GetServerTimeNow = function() return 1000 + now end
 local RS = svc("ReplicatedStorage")
 local SSS = svc("ServerScriptService")
 local Players = svc("Players")
-svc("Lighting"); svc("StarterGui"); svc("SoundService"); svc("Debris"); svc("MarketplaceService"); svc("ContextActionService"); svc("StarterPlayer")
+svc("Lighting"); game.CreatorType = M.Enum.CreatorType.User; game.CreatorId = 1; svc("StarterGui"); svc("SoundService"); svc("Debris"); svc("MarketplaceService"); svc("ContextActionService"); svc("StarterPlayer")
 local Run = svc("RunService")
 Run.IsStudio = function() return true end
 Run.IsServer = function() return true end
@@ -107,15 +107,15 @@ module(RS, "CheckUIIcons", "shared/StudKit/CheckUIIcons.luau")
 local shared = folder(RS, "Shared")
 for _, n in { "Config", "Cosmetics", "TailBuilder", "Audio", "ClientSignals" } do module(shared, n, "shared/Shared/" .. n .. ".luau") end
 local rem = folder(RS, "Remotes")
-for _, n in { "RoundState", "Notify", "RoleAssigned", "Captured", "MoveAction", "Results", "DataUpdated", "SetReady", "OpenMenu" } do local r = I("RemoteEvent"); r.Name = n; r.Parent = rem end
-for _, n in { "ShopPurchase", "ShopEquip", "GetProfile" } do local r = I("RemoteFunction"); r.Name = n; r.Parent = rem end
-for _, n in { "MapBuilder", "DataService", "ShopService", "TailService", "RoleService", "CoinService", "MovementService" } do module(SSS, n, "server/" .. n .. ".luau") end
+for _, n in { "RoundState", "Notify", "RoleAssigned", "Captured", "MoveAction", "Results", "DataUpdated", "SetReady", "OpenMenu", "TutorialDone" } do local r = I("RemoteEvent"); r.Name = n; r.Parent = rem end
+for _, n in { "ShopPurchase", "ShopEquip", "GetProfile", "AdminCommand" } do local r = I("RemoteFunction"); r.Name = n; r.Parent = rem end
+for _, n in { "MapBuilder", "DataService", "ShopService", "TailService", "RoleService", "CoinService", "MovementService", "AdminService" } do module(SSS, n, "server/" .. n .. ".luau") end
 local gm = I("Script"); gm.Name = "GameManager"; gm.Source = "server/GameManager.server.luau"; gm.Parent = SSS
 
 local sps = I("StarterPlayerScripts")
 for _, n in { "MovementController", "AnimationController", "EffectsController" } do local s = I("LocalScript"); s.Name = n; s.Source = "client/" .. n .. ".client.luau"; s.Parent = sps end
 local uic = I("LocalScript"); uic.Name = "UIController"; uic.Source = "client/UIController/init.client.luau"; uic.Parent = sps
-for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
+for _, n in { "Hud", "LobbyMenu", "Collection", "Results", "Screens", "AdminPanel", "Tutorial" } do module(uic, n, "client/UIController/" .. n .. ".luau") end
 
 B.RS, B.SSS, B.SPS, B.Players, B.Run, B.workspace, B.services = RS, SSS, sps, Players, Run, workspace, services
 
